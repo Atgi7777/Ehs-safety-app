@@ -24,3 +24,10 @@ export const Colors = {
     tabIconSelected: tintColorDark,
   },
 };
+
+export default {
+  primary: '#23476A',
+  background: '#f5f8ff',
+  text: '#222',
+  accent: '#2e6bcc',
+};
