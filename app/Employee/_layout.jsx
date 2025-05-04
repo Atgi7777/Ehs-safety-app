@@ -1,5 +1,4 @@
 import { Stack } from 'expo-router';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -8,7 +7,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function Layout() {
   const [fontsLoaded] = useFonts({
-    MadimiOne: require('../assets/fonts/MadimiOne-Regular.ttf'),
+    MadimiOne: require('../../assets/fonts/MadimiOne-Regular.ttf'),
   });
 
   useEffect(() => {
@@ -17,13 +16,12 @@ export default function Layout() {
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </GestureHandlerRootView>
+    <Stack>
+      <Stack.Screen name="Instruction" options={{ headerShown: false }} />
+      <Stack.Screen name="Tab" options={{ headerShown: false }} />
+    </Stack>
   );
 }

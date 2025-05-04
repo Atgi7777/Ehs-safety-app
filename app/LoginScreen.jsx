@@ -1,16 +1,18 @@
+// app/LoginScreen.tsx
+
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert , Image} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { login } from '../src/api/authService'; // Одоо зөв зам зааж байна
+import { useAuth } from '../src/hooks/useAuth'; 
 
-
-export default function LoginScreen() {
+const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const { login, ress, loading } = useAuth(); // useAuth хуук ашиглах
 
+  // Нэвтрэх функц
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Алдаа', 'Имэйл болон нууц үг оруулна уу.');
@@ -18,10 +20,18 @@ export default function LoginScreen() {
     }
 
     try {
-      const data = await login(email, password); // API руу хүсэлт явуулах
-      if (data.token) {
-        await AsyncStorage.setItem('userToken', data.token); // Токен хадгалах
-        router.replace('/'); // Амжилттай нэвтэрсэн тохиолдолд хуудас шилжих
+      const ress = await login(email, password); // Бүх хариуг авах
+      console.log('Logged in ress' , ress.user.role);
+      // login хуук ашиглах
+
+      // Хэрэв нэвтэрсэн хэрэглэгч байгаа бол (login амжилттай болсон)
+      if (ress) {
+        // Хэрэглэгчийн роль дагуу тохирох хуудас руу шилжих
+        if (ress.user.role === 'safety-engineer') {
+          router.push('/Engineer/Tabs'); // Аюулгүй ажиллагааны инженерийн хуудас руу шилжих
+        } else if (ress.user.role === 'employee') {
+          router.push('/Employee/Tab'); // Ажилтны хуудас руу шилжих
+        }
       }
     } catch (error) {
       Alert.alert('Нэвтрэх амжилтгүй боллоо', error.message || 'Нэр, нууц үг буруу байна');
@@ -30,7 +40,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Image source={require('@/assets/images/icon.png')} style={styles.logo} />
+            <Image source={require('@/assets/images/icon.png')} style={styles.logo} />
 
       <Text style={styles.title}>EHS</Text>
       <Text style={styles.subtitle}>Environment Health and Safety</Text>
@@ -43,6 +53,7 @@ export default function LoginScreen() {
           value={email}
           onChangeText={setEmail}
           style={styles.input}
+          autoCapitalize="none"
         />
       </View>
 
@@ -63,7 +74,7 @@ export default function LoginScreen() {
       </TouchableOpacity>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -73,11 +84,6 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: '#fff',
     marginTop: -200,
-  },
-  logo: {
-    width: 60,
-    height: 60,
-    marginLeft: 100,
   },
   title: {
     fontSize: 50,
@@ -127,9 +133,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 14,
   },
+  logo: {
+    width: 60,
+    height: 60,
+    marginLeft: 100,
+  },
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },
 });
+
+export default LoginScreen;

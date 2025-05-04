@@ -1,35 +1,46 @@
-// app/index.tsx
+//app/index.jsx
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-export default function Index() {
+export default function index() { // том үсгээр
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkLogin = async () => {
       const token = await AsyncStorage.getItem('userToken');
-      const role = await AsyncStorage.getItem('userRole');
 
-      if (token && role) {
-        if (role === 'safety-engineer') {
-          router.replace('/EngineerScreen');
-        } else if (role === 'employee') {
-          router.replace('/EmployeeScreen');
-        } else {
-          router.replace('/LoginScreen');
-        }
-      } else {
+      if (!token) {
         router.replace('/LoginScreen');
+        setLoading(false);
+        return;
+      }
+
+      const role = await AsyncStorage.getItem('userRole');
+      if (!role) {
+        router.replace('/LoginScreen');
+        setLoading(false);
+        return;
+      }
+
+      switch (role) {
+        case 'employee':
+          router.replace('/Employee/Tab'); 
+          break;
+        case 'safety-engineer':
+          router.replace('/Engineer/Tabs');
+          break;
+        default:
+          router.replace('/'); 
       }
 
       setLoading(false);
     };
 
     checkLogin();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
