@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'http://localhost:5050'; // Эмуляторт зориулсан IP
+const BASE_URL = 'http://localhost:5050'; 
 
 const InstructionListScreen = () => {
   const router = useRouter();

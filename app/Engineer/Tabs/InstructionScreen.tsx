@@ -16,9 +16,10 @@ const InstructionScreen = () => {
 
   return (
     <View style={styles.container}>
+              <Header />
+
       {/* Контентуудыг ScrollView дотор хийх */}
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <Header />
        
         <InstructionList />
       </ScrollView>

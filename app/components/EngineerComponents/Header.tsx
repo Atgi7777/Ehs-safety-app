@@ -32,11 +32,16 @@ const Header = () => {
   const handleProfilePress = () => {
     router.push('/Engineer/Tabs/ProfileScreen'); // ← Энэ нь tab доторх профайл руу шилжинэ
   };
+  const handleHomePress = () => {
+    router.push('/Engineer/Tabs/EngineerScreen');
+  };
 
   return (
     <View style={styles.header}>
       <View style={styles.headerContent}>
+      <TouchableOpacity onPress={handleHomePress}>
         <Image source={require('../../../assets/images/logo.png')} style={styles.logo} />
+        </TouchableOpacity>
         <View style={styles.spacer} />
         <Ionicons name="notifications-outline" size={30} color="#2F487F" style={{ marginRight: 10 }} />
         <TouchableOpacity onPress={handleProfilePress}>

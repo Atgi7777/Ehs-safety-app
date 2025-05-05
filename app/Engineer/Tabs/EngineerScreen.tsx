@@ -11,18 +11,17 @@ import GroupList from '@/app/components/EngineerComponents/GroupList';
 const EngineerScreen = () => {
   const router = useRouter();
 
-  
-
   const trainingCount = 5;
   const inquiryCount = 10;
-
+  
   return (
     <View style={styles.container}>
-      {/* Контентуудыг ScrollView дотор хийх */}
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <Header />
         <GroupList />
+
         <Statistics trainingCount={trainingCount} inquiryCount={inquiryCount} />
+        <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+
         <InstructionList />
       </ScrollView>
 

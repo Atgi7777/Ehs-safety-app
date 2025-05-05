@@ -13,9 +13,9 @@ const ReportScreen = () => {
 
   return (
     <View style={styles.container}>
-      
+              <Header />
+
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <Header />
        
       
       </ScrollView>

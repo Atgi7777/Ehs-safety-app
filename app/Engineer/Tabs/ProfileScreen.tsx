@@ -66,8 +66,8 @@ const ProfileScreen = () => {
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 150 }}>
         {/* Back Arrow */}
         <TouchableOpacity onPress={() => router.back()}>
-  <Ionicons name="arrow-back" size={24} color="#2F487F" />
-</TouchableOpacity>
+          <Ionicons name="arrow-back" size={24} color="#2F487F" />
+            </TouchableOpacity>
 
 
         {/* Profile Section */}
