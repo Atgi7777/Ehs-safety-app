@@ -26,7 +26,7 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
 
   return (
     <View style={styles.statsContainer}>
-      {/* Сургалт блок (дараагүй) */}
+      {/* // сургалтын хувиар оруулах боломжтой болгоно */}
       <View style={styles.statItem}>
         <View style={styles.topRightIcon}>
           <Ionicons name="chevron-forward-outline" size={40} color="#B0B0B0" />
@@ -50,7 +50,7 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
           <Image 
             source={require('../../../assets/images/info.png')} 
             style={styles.logo2} 
-          />
+          /> 
           <Text style={styles.statNumber}>{inquiryCount}</Text>
         </View>
         <Text style={styles.statLabel}>Асуудал</Text>

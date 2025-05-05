@@ -1,3 +1,4 @@
+// engineer ийн header 
 import React, { useEffect, useState } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -36,7 +37,7 @@ const Header = () => {
     router.push('/Engineer/Tabs/EngineerScreen');
   };
 
-  return (
+  return ( 
     <View style={styles.header}>
       <View style={styles.headerContent}>
       <TouchableOpacity onPress={handleHomePress}>
@@ -44,6 +45,7 @@ const Header = () => {
         </TouchableOpacity>
         <View style={styles.spacer} />
         <Ionicons name="notifications-outline" size={30} color="#2F487F" style={{ marginRight: 10 }} />
+        {/* // хонх яваандаа ажилдаг болгоноо ххэ  */}
         <TouchableOpacity onPress={handleProfilePress}>
           <Image
             source={

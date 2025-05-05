@@ -23,7 +23,7 @@ const InstructionListScreen = () => {
       if (!token) {
         console.warn('❌ Token байхгүй байна');
         return;
-      }
+      } 
 
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const res = await axios.get(`${BASE_URL}/api/safety-engineer/instructions`, config);

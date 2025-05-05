@@ -2,14 +2,13 @@ import React, { useRef, useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, Alert
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import GroupDetailModal, { GroupDetailModalRef } from '@/app/components/modals/GroupDetailModal';
-import PhoneNumberModal, { PhoneNumberModalRef } from '@/app/components/modals/PhoneAddModal';
-import EmailAddModal, { EmailAddModalRef } from '@/app/components/modals/EmailAddModal';
-import GroupAddModal, { GroupAddModalRef } from '@/app/components/modals/GroupAddModal';
+import GroupDetailModal, { GroupDetailModalRef } from '@/app/components/modals/GroupListModals/GroupDetailModal';
+import PhoneNumberModal, { PhoneNumberModalRef } from '@/app/components/modals/GroupListModals/PhoneAddModal';
+import EmailAddModal, { EmailAddModalRef } from '@/app/components/modals/GroupListModals/EmailAddModal';
+import GroupAddModal, { GroupAddModalRef } from '@/app/components/modals/GroupListModals/GroupAddModal';
 
 export default function GroupList() {
   const [groups, setGroups] = useState<any[]>([]);
@@ -59,12 +58,22 @@ export default function GroupList() {
   };
 
   const openPhoneModal = () => {
-    phoneModalRef.current?.open();
+    if (selectedGroup?.id) {
+      phoneModalRef.current?.open(selectedGroup.id); // ✅ groupId дамжууллаа
+    } else {
+      Alert.alert('Анхаар', 'Бүлэг сонгогдоогүй байна.');
+    }
   };
+  
 
   const openEmailModal = () => {
-    emailAddModalRef.current?.open();
+    if (selectedGroup?.id) {
+      emailAddModalRef.current?.open(selectedGroup.id); // ✅ ID дамжуулж байна
+    } else {
+      Alert.alert('Анхаар', 'Бүлэг сонгогдоогүй байна.');
+    }
   };
+  
 
   return (
     <View style={styles.container}>
@@ -94,7 +103,7 @@ export default function GroupList() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
+ 
       {/* Модалууд */}
       <GroupDetailModal
         ref={groupDetailRef}

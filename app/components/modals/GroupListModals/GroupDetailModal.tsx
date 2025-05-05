@@ -4,8 +4,10 @@ import { Modalize } from 'react-native-modalize';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import EmployeeDetailModal, { EmployeeDetailModalRef } from '@/app/components/modals/EmployeeDetailModal';
+import EmployeeDetailModal, { EmployeeDetailModalRef } from '@/app/components/modals/GroupDetailModals/EmployeeDetailModal';
 import { useRouter } from 'expo-router';
+ 
+
 
 const BASE_URL = Platform.OS === 'ios' ? 'http://localhost:5050' : 'http://10.0.2.2:5050';
 
@@ -66,6 +68,13 @@ const GroupDetailModal = forwardRef<GroupDetailModalRef, GroupDetailModalProps>(
     setSelectedEmployees(prev => prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]);
   };
 
+  const handleGroupOpen = (groupId: number) => {
+    router.push({
+      pathname: '/components/modals/GroupDetailModals/GroupModals',
+      params: { groupId: groupId.toString() }, // ⚠️ string хэлбэртэй дамжуулна
+    });
+  };
+
   const handleDone = async () => {
     if (!group || !selectedEmployees.length) return;
     try {
@@ -80,9 +89,10 @@ const GroupDetailModal = forwardRef<GroupDetailModalRef, GroupDetailModalProps>(
     }
   };
 
-  const openEmployeeDetail = (employee: any) => {
-    employeeDetailRef.current?.open(employee);
+  const openEmployeeDetail = (employeeId: number, groupId: number) => {
+    employeeDetailRef.current?.open(employeeId, groupId);
   };
+  
 
   const fetchInstructions = async () => {
     if (!group || !group.id) return;
@@ -104,8 +114,8 @@ const GroupDetailModal = forwardRef<GroupDetailModalRef, GroupDetailModalProps>(
           <View style={styles.modalContent}>
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-
-                <Image 
+              <TouchableOpacity onPress={() => {handleGroupOpen} }>
+              <Image 
                   source={group.id === 'add'
                     ? group.image
                     : group.profile?.image
@@ -113,6 +123,7 @@ const GroupDetailModal = forwardRef<GroupDetailModalRef, GroupDetailModalProps>(
                       : require('@/assets/images/add-group.png')}
                   style={styles.groupLogo}
                 />
+                 </TouchableOpacity>
                 <Text style={styles.groupTitle}>{group.name}</Text>
               </View>
               <TouchableOpacity onPress={handleDone}>
@@ -151,9 +162,11 @@ const GroupDetailModal = forwardRef<GroupDetailModalRef, GroupDetailModalProps>(
           <Text style={styles.memberName}>{employee.name}</Text>
           <Text style={styles.memberEmail}>{employee.email}</Text>
         </View>
-        <TouchableOpacity onPress={() => openEmployeeDetail(employee)}>
-          <Ionicons name="pencil-outline" size={20} color="#2F487F" />
-        </TouchableOpacity>
+        <TouchableOpacity onPress={() => openEmployeeDetail(employee.id , group.id )}>
+          
+  <Ionicons name="pencil-outline" size={20} color="#2F487F" />
+</TouchableOpacity>
+
       </View>
     ))}
 

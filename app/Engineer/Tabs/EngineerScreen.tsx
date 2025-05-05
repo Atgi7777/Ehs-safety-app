@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+
 import { useRouter } from 'expo-router';
 
 import Header from '@/app/components/EngineerComponents/Header';
@@ -9,7 +9,7 @@ import InstructionList from '@/app/components/EngineerComponents/EngineerTaskLis
 import GroupList from '@/app/components/EngineerComponents/GroupList';
 
 const EngineerScreen = () => {
-  const router = useRouter();
+  const router = useRouter(); 
 
   const trainingCount = 5;
   const inquiryCount = 10;
