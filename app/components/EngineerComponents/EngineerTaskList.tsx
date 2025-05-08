@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator
+  View, Text, StyleSheet, TouchableOpacity, Alert , ScrollView, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
@@ -45,6 +45,37 @@ const InstructionListScreen = () => {
       setEngineerName('Тодорхойгүй');
     }
   };
+  const handleEditInstruction = () => {
+    closeDetail();
+    router.push({
+      pathname: '/Engineer/Instruction/EditInstructionScreen',
+      params: { instructionId: selectedInstruction.id },
+    });
+  };
+  
+  const handleDeleteInstruction = async () => {
+    Alert.alert('Баталгаажуулах', 'Та энэ зааварчилгааг устгахдаа итгэлтэй байна уу?', [
+      { text: 'Үгүй', style: 'cancel' },
+      {
+        text: 'Тийм', style: 'destructive', onPress: async () => {
+          try {
+            const token = await AsyncStorage.getItem('userToken');
+            await axios.delete(`${BASE_URL}/api/instruction/${selectedInstruction.id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            Alert.alert('Амжилттай', 'Зааварчилгаа устгагдлаа');
+            closeDetail();
+            fetchInstructions(); // жагсаалтыг дахин татна
+          } catch (err) {
+            console.error('Устгах үед алдаа:', err);
+            Alert.alert('Алдаа', 'Устгах үед алдаа гарлаа');
+            console.log('selectedId' , selectedInstruction.id);
+          }
+        }
+      }
+    ]);
+  };
+  
 
   const shareToGroup = async (instructionId: number) => {
     try {
@@ -178,15 +209,17 @@ const InstructionListScreen = () => {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={styles.editRow}>
-                <Ionicons name="pencil-outline" size={18} />
-                <Text style={styles.editText}>Зааварчилгаа засах</Text>
-              </TouchableOpacity>
+              <TouchableOpacity style={styles.editRow} onPress={handleEditInstruction}>
+  <Ionicons name="pencil-outline" size={18} />
+  <Text style={styles.editText}>Зааварчилгаа засах</Text>
+</TouchableOpacity>
 
-              <TouchableOpacity style={styles.deleteRow}>
-                <Ionicons name="trash-outline" size={18} color="#e74c3c" />
-                <Text style={styles.deleteText}>Зааварчилгаа устгах</Text>
-              </TouchableOpacity>
+
+<TouchableOpacity style={styles.deleteRow} onPress={handleDeleteInstruction}>
+  <Ionicons name="trash-outline" size={18} color="#e74c3c" />
+  <Text style={styles.deleteText}>Зааварчилгаа устгах</Text>
+</TouchableOpacity>
+
 
               <Text style={styles.metaText}>
                 Үүсгэсэн огноо: By {engineerName} on {new Date(selectedInstruction.createdAt).toLocaleDateString()} at {new Date(selectedInstruction.createdAt).toLocaleTimeString()}

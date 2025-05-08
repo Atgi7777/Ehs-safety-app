@@ -47,40 +47,48 @@ const AddInstructionScreen = () => {
     if (!title || !instructionNumber || !description || !createdDate || !endDate) {
       return Alert.alert('Анхааруулга', 'Бүх талбарыг бөглөнө үү.');
     }
-
+  
+    // ✅ Дугаар талбарт зөвхөн тоо оруулсан эсэхийг шалгана
+    const number = parseInt(instructionNumber, 10);
+    if (isNaN(number)) {
+      return Alert.alert('Анхааруулга', 'Зааварчилгааны дугаар талбарт зөвхөн тоо оруулна уу.');
+    }
+  
     if (new Date(endDate) < new Date(createdDate)) {
       return Alert.alert('Огнооны алдаа', 'Дуусах огноо нь эхлэхээс өмнө байж болохгүй.');
     }
-
+  
     try {
       const token = await AsyncStorage.getItem('userToken');
+      console.log('TOKEN:', token);
+  
       const payload = {
         title,
-        number: parseInt(instructionNumber, 10),
+        number,
         description,
-        start_date: createdDate,
-        end_date: endDate,
+        start_date: createdDate?.toISOString(),
+        end_date: endDate?.toISOString(),
       };
       const config = {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       };
-
+  
       const res = await axios.post(
         `${BASE_URL}/api/safety-engineer/creat-instruction`,
         payload,
         config
       );
-
+  
       if (res.status === 201) {
-        const instructionId = res.data.id; // 👉 энд зарлаж байна
-
+        const instructionId = res.data.id;
         router.push({
           pathname: '/Engineer/Instruction/AddInstructionDetail',
-          params: { instructionId: instructionId.toString() }, // router-ийн параметр текст л хүлээж авна
-
+          params: { instructionId: instructionId.toString() },
         });
-      }
-       else {
+      } else {
         Alert.alert('Алдаа', 'Хадгалах үед алдаа гарлаа.');
       }
     } catch (err) {
@@ -88,6 +96,7 @@ const AddInstructionScreen = () => {
       Alert.alert('Алдаа', 'Сервертэй холбогдож чадсангүй.');
     }
   };
+  
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F1F5FE' }}>

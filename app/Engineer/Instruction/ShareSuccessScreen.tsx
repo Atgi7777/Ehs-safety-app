@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, Alert,
+  View, Text, StyleSheet, SectionList, TouchableOpacity, Image, ActivityIndicator, Alert,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,17 +9,26 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const BASE_URL = 'http://localhost:5050';
 
+type Group = {
+  id: number;
+  name: string;
+  profile?: { image?: string };
+};
+
+type Section = {
+  title: string;
+  data: Group[];
+};
+
 export default function InstructionGroupSelectScreen() {
   const { instructionId } = useLocalSearchParams();
   const router = useRouter();
 
-  const [sharedGroupIds, setSharedGroupIds] = useState<number[]>([]);
-  const [sharedGroups, setSharedGroups] = useState<any[]>([]);
-  const [unsharedGroups, setUnsharedGroups] = useState<any[]>([]);
+  const [sharedGroups, setSharedGroups] = useState<Group[]>([]);
+  const [unsharedGroups, setUnsharedGroups] = useState<Group[]>([]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ✴️ Fetch shared group IDs
   const fetchSharedGroups = async (): Promise<number[]> => {
     try {
       const res = await axios.get(`${BASE_URL}/api/instruction/${instructionId}/shared-groups`);
@@ -30,7 +39,6 @@ export default function InstructionGroupSelectScreen() {
     }
   };
 
-  // ✴️ Fetch all groups and split
   const fetchGroups = async (sharedIds: number[]) => {
     try {
       const token = await AsyncStorage.getItem('userToken');
@@ -38,13 +46,9 @@ export default function InstructionGroupSelectScreen() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const allGroups = res.data;
-      const shared = allGroups.filter((g: any) => sharedIds.includes(g.id));
-      const unshared = allGroups.filter((g: any) => !sharedIds.includes(g.id));
-
-      setSharedGroupIds(sharedIds);
-      setSharedGroups(shared);
-      setUnsharedGroups(unshared);
+      const allGroups: Group[] = res.data;
+      setSharedGroups(allGroups.filter((g) => sharedIds.includes(g.id)));
+      setUnsharedGroups(allGroups.filter((g) => !sharedIds.includes(g.id)));
     } catch (err) {
       console.error('Бүлгийн жагсаалт татах алдаа:', err);
       Alert.alert('Алдаа', 'Бүлгүүдийг татаж чадсангүй');
@@ -89,24 +93,67 @@ export default function InstructionGroupSelectScreen() {
     }
   };
 
-  const renderItem = ({ item }: any) => {
+  const handleUnshare = async (groupId: number) => {
+    Alert.alert('Баталгаажуулах', 'Энэ бүлгээс зааварчилгааг хасах уу?', [
+      { text: 'Үгүй', style: 'cancel' },
+      {
+        text: 'Тийм', onPress: async () => {
+          try {
+            const token = await AsyncStorage.getItem('userToken');
+            await axios.delete(`${BASE_URL}/api/instruction/${instructionId}/unshare-group/${groupId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            setSharedGroups(prev => prev.filter((g) => g.id !== groupId));
+            const removed = sharedGroups.find((g) => g.id === groupId);
+            if (removed) setUnsharedGroups(prev => [...prev, removed]);
+
+            Alert.alert('Амжилттай', 'Бүлэг хасагдлаа');
+          } catch (err) {
+            console.error('Хасахад алдаа:', err);
+            Alert.alert('Алдаа', 'Хасах үед алдаа гарлаа');
+          }
+        }
+      },
+    ]);
+  };
+
+  const sections: Section[] = [
+    { title: 'Илгээгдсэн бүлгүүд', data: sharedGroups },
+    { title: 'Илгээгээгүй бүлгүүд', data: unsharedGroups },
+  ];
+
+  const renderItem = ({ item }: { item: Group }) => {
     const isSelected = selectedGroupIds.includes(item.id);
+    const isShared = sharedGroups.some((g) => g.id === item.id);
+
     return (
-      <TouchableOpacity
-        style={[styles.groupItem, isSelected && styles.selectedItem]}
-        onPress={() => toggleGroupSelection(item.id)}
-      >
+      <View style={[styles.groupItem, isSelected && styles.selectedItem]}>
         <Image
           source={item.profile?.image ? { uri: `${BASE_URL}${item.profile.image}` } : require('@/assets/images/add-group.png')}
           style={styles.groupImage}
         />
         <Text style={styles.groupName}>{item.name}</Text>
-        {isSelected && (
-          <Ionicons name="checkmark-circle" size={24} color="#2F487F" />
+        {isShared ? (
+          <TouchableOpacity onPress={() => handleUnshare(item.id)}>
+            <Ionicons name="trash-outline" size={24} color="#2F487F" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={() => toggleGroupSelection(item.id)}>
+            <Ionicons
+              name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+              size={24}
+              color={isSelected ? '#2F487F' : '#2F487F'}
+            />
+          </TouchableOpacity>
         )}
-      </TouchableOpacity>
+      </View>
     );
   };
+
+  const renderSectionHeader = ({ section }: { section: Section }) => (
+    <Text style={styles.sectionLabel}>{section.title}</Text>
+  );
 
   return (
     <View style={styles.container}>
@@ -120,34 +167,13 @@ export default function InstructionGroupSelectScreen() {
       {loading ? (
         <ActivityIndicator size="large" color="#2F487F" />
       ) : (
-        <>
-          {sharedGroups.length > 0 && (
-            <>
-              <Text style={styles.sectionLabel}>Илгээгдсэн бүлгүүд</Text>
-              <FlatList
-                data={sharedGroups}
-                renderItem={({ item }) => (
-                  <View style={[styles.groupItem, { backgroundColor: '#f0f0f0' }]}>
-                    <Image
-                      source={item.profile?.image ? { uri: `${BASE_URL}${item.profile.image}` } : require('@/assets/images/add-group.png')}
-                      style={styles.groupImage}
-                    />
-                    <Text style={styles.groupName}>{item.name}</Text>
-                    <Ionicons name="checkmark-done-circle" size={24} color="gray" />
-                  </View>
-                )}
-                keyExtractor={(item) => item.id.toString()}
-              />
-            </>
-          )}
-          <Text style={styles.sectionLabel}>Илгээгээгүй бүлгүүд</Text>
-          <FlatList
-            data={unsharedGroups}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ paddingBottom: 100 }}
-          />
-        </>
+        <SectionList
+          sections={sections}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        />
       )}
 
       <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
@@ -167,13 +193,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 10,
     borderRadius: 12,
-    elevation: 3,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
+    shadowRadius: 3,
   },
   selectedItem: {
     borderColor: '#2F487F',

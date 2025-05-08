@@ -7,7 +7,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 
-const BASE_URL = Platform.OS === 'ios' ? 'http://localhost:5050' : 'http://10.0.2.2:5050';
+const BASE_URL = 'http://localhost:5050';
 
 const Header = () => {
   const [profile, setProfile] = useState<any>(null);

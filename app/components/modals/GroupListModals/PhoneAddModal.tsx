@@ -37,14 +37,14 @@ const PhoneAddModal = forwardRef<PhoneNumberModalRef>((_, ref) => {
     if (phoneNumber.length !== 8) return Alert.alert('Алдаа', 'Утасны дугаар 8 оронтой байх ёстой!');
     
     console.log('📦 Group ID:', groupId);
-    console.log('📦 Full URL:', `${BASE_URL}/api/safety-engineer/group/${groupId}/add-by-phone`);
+    console.log('📦 Full URL:', `${BASE_URL}/api/group/group/${groupId}/add-by-phone`);
     
     try {
       const token = await AsyncStorage.getItem('userToken');
       if (!token) return Alert.alert('Алдаа', 'Token олдсонгүй');
 
       await axios.post(
-        `${BASE_URL}/api/safety-engineer/group/${groupId}/add-by-phone`,
+        `${BASE_URL}/api/group/group/${groupId}/add-by-phone`,
         { phone: phoneNumber },
         { headers: { Authorization: `Bearer ${token}` } }
       );

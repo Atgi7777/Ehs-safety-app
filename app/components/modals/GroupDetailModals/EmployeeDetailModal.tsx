@@ -1,3 +1,4 @@
+// EmployeeDetailModal.tsx
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
   View,
@@ -37,7 +38,7 @@ const EmployeeDetailModal = forwardRef<EmployeeDetailModalRef>((_, ref) => {
 
       try {
         const token = await AsyncStorage.getItem('userToken');
-        const res = await axios.get(`${BASE_URL}/api/safety-engineer/employees/${employeeId}`, {
+        const res = await axios.get(`${BASE_URL}/api/group/employees/${employeeId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setEmployee(res.data);
@@ -63,7 +64,7 @@ const EmployeeDetailModal = forwardRef<EmployeeDetailModalRef>((_, ref) => {
 
     try {
       const token = await AsyncStorage.getItem('userToken');
-      await axios.delete(`${BASE_URL}/api/safety-engineer/group/${groupId}/remove/${employee.id}`, {
+      await axios.delete(`${BASE_URL}/api/group/group/${groupId}/remove/${employee.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

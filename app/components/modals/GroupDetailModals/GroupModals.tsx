@@ -1,20 +1,33 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Platform } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+//GroupModals.tsx
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Platform,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 
-const BASE_URL = Platform.OS === 'ios' ? 'http://localhost:5050' : 'http://10.0.2.2:5050';
+const BASE_URL =
+  Platform.OS === 'ios' ? 'http://localhost:5050' : 'http://10.0.2.2:5050';
 
 const GroupModals = () => {
   const { groupId } = useLocalSearchParams();
   const [group, setGroup] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchGroupDetail = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/safety-engineer/groups/${groupId}`);
+        const res = await axios.get(`${BASE_URL}/api/group/${groupId}`);
         setGroup(res.data);
       } catch (err) {
         console.error('Группийн мэдээлэл татахад алдаа:', err);
@@ -28,27 +41,102 @@ const GroupModals = () => {
     }
   }, [groupId]);
 
+  const handleDelete = async () => {
+    Alert.alert('Баталгаажуулах', 'Энэ бүлгийг устгах уу?', [
+      { text: 'Болих', style: 'cancel' },
+      {
+        text: 'Устгах',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await axios.delete(`${BASE_URL}/api/group/${groupId}`);
+            Alert.alert('Амжилттай', 'Бүлэг амжилттай устлаа.');
+            router.back();
+          } catch (err) {
+            console.error('Устгахад алдаа:', err);
+            Alert.alert('Алдаа', 'Устгаж чадсангүй.');
+          }
+        },
+      },
+    ]);
+  };
+
   if (loading) {
     return (
-      <View style={styles.centered}><Text>Уншиж байна...</Text></View>
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#2F487F" />
+        <Text>Уншиж байна...</Text>
+      </View>
     );
   }
 
   if (!group) {
     return (
-      <View style={styles.centered}><Text>Групп олдсонгүй.</Text></View>
+      <View style={styles.centered}>
+        <Text>Групп олдсонгүй.</Text>
+      </View>
     );
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Back & Edit */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={30} color="#2F487F" />
+        </TouchableOpacity>
+        <TouchableOpacity
+  onPress={() => {
+    router.push({
+      pathname: '/components/modals/GroupDetailModals/GroupEdit',
+      params: { groupId: group?.id.toString() }, // ID-г string болгоно
+    });
+  }}
+>
+  <Ionicons name="create-outline" size={30} color="#2F487F" />
+</TouchableOpacity>
+
+      </View>
+
       <Image
-        source={group.profile?.image ? { uri: `${BASE_URL}${group.profile.image}` } : require('@/assets/images/add-group.png')}
+        source={
+          group.profile?.image
+            ? { uri: `${BASE_URL}${group.profile.image}` ,  params: { groupId: groupId?.toString() }, }
+            : require('@/assets/images/add-group.png')
+        }
         style={styles.groupImage}
       />
+
       <Text style={styles.groupName}>{group.name}</Text>
-      <Text style={styles.groupDescription}>{group.description || 'Тайлбар байхгүй'}</Text>
-      {/* Нэмэлт мэдээллүүдийг энд харуулж болно */}
+
+      <View style={styles.infoBox}>
+        <Text style={styles.infoLabel}>Ажлын чиглэл:</Text>
+        <Text style={styles.infoValue}>{group.activity || '—'}</Text>
+
+        <Text style={styles.infoLabel}>Ажлын товч тайлбар:</Text>
+        <Text style={styles.infoValue}>{group.work_description || '—'}</Text>
+
+        <Text style={styles.infoLabel}>Ажлын дэлгэрэнгүй:</Text>
+        <Text style={styles.infoValue}>{group.work_detail || '—'}</Text>
+
+        <Text style={styles.infoLabel}>Статус:</Text>
+        <Text style={styles.infoValue}>{group.status || '—'}</Text>
+
+        <Text style={styles.infoLabel}>ХАБ инженер:</Text>
+        <Text style={styles.infoValue}>
+          {group.safetyEngineer?.name || '—'}
+        </Text>
+
+        <Text style={styles.infoLabel}>Байгууллага:</Text>
+        <Text style={styles.infoValue}>
+          {group.organization?.name || '—'}
+        </Text>
+      </View>
+
+      <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+        <Ionicons name="trash-outline" size={20} color="#fff" />
+        <Text style={styles.deleteBtnText}>Бүлэг устгах</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -56,9 +144,90 @@ const GroupModals = () => {
 export default GroupModals;
 
 const styles = StyleSheet.create({
-  container: { padding: 20, alignItems: 'center' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  groupImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 20 },
-  groupName: { fontSize: 22, fontWeight: 'bold', color: '#2F487F', marginBottom: 10 },
-  groupDescription: { fontSize: 16, color: '#444', textAlign: 'center' },
+  container: {
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 24,
+    paddingTop: 120,
+    paddingBottom: 100,
+    alignItems: 'center',
+    minHeight: '100%',
+   
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+  },
+  headerRow: {
+    position: 'absolute',
+    top: 80,
+    left: 24,
+    right: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  groupImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    marginBottom: 18,
+    borderWidth: 3,
+    borderColor: '#fff',
+    backgroundColor: '#E5E7EB',
+  },
+  groupName: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 14,
+    textAlign: 'center',
+  },
+  infoBox: {
+    width: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 30,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  infoLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+    marginTop: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  infoValue: {
+    fontSize: 15,
+    color: '#111827',
+    marginTop: 4,
+    lineHeight: 22,
+  },
+  deleteBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#2F487F',
+    paddingVertical: 14,
+    paddingHorizontal: 36,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  deleteBtnText: {
+    color: '#fff',
+    marginLeft: 10,
+    fontWeight: '600',
+    fontSize: 16,
+  },
 });

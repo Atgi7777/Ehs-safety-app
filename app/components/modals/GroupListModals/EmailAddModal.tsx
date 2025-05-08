@@ -33,7 +33,7 @@ const EmailAddModal = forwardRef<EmailAddModalRef>((_, ref) => {
       if (!token) return Alert.alert('Алдаа', 'Token олдсонгүй');
 
       await axios.post(
-        `${BASE_URL}/api/safety-engineer/group/${groupId}/add-by-email`,
+        `${BASE_URL}/api/group/group/${groupId}/add-by-email`,
         { email },
         { headers: { Authorization: `Bearer ${token}` } }
       );

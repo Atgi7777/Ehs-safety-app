@@ -38,16 +38,37 @@ const AddInstructionDetail = () => {
 
   const handlePickImage = async () => {
     if (selectedPageIndex === null) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-    });
-
-    if (!result.canceled && result.assets.length > 0) {
+  
+    // ✅ 1. Permission шалгах
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Анхаар', 'Зураг сонгохын тулд permission шаардлагатай!');
+      return;
+    }
+  
+    try {
+      // ✅ 2. Зураг сонгох
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        quality: 0.7,
+      });
+  
+      // ✅ 3. canceled болон assets шалгах
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        console.log('Сонгосон файл байхгүй');
+        return;
+      }
+  
       const updatedPages = [...pages];
       updatedPages[selectedPageIndex].file = result.assets[0].uri;
       setPages(updatedPages);
+    } catch (error) {
+      console.error('Зураг сонгоход алдаа:', error);
+      Alert.alert('Алдаа', 'Зураг сонгоход алдаа гарлаа.');
     }
   };
+  
 
   const handleAddPage = () => {
     const newPage = { id: pages.length + 1, description: '', file: null };

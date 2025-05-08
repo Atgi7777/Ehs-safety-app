@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import Header from '@/app/components/EngineerComponents/Header';
-import InstructionList from '@/app/components/EngineerComponents/EngineerTaskList';
+import IssueListScreen from '@/app/components/EngineerComponents/IssueListScreen';
 
 const ReportScreen = () => {
   const router = useRouter();
@@ -16,6 +16,7 @@ const ReportScreen = () => {
               <Header />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+        <IssueListScreen/>
        
       
       </ScrollView>

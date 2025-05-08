@@ -15,7 +15,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Header from '@/app/components/EngineerComponents/Header';
 
-const BASE_URL =  'http://localhost:5050' ;
+const BASE_URL = Platform.OS === 'ios'
+  ? 'http://127.0.0.1:5050'  // эсвэл таны Mac IP
+  : 'http://10.0.2.2:5050';
+
 
 const ProfileScreen = () => {
   const router = useRouter();

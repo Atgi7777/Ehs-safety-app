@@ -17,7 +17,10 @@ import * as ImagePicker from 'expo-image-picker';
 import { ScrollView } from 'react-native'; // нэмэх
 
 
-const BASE_URL = Platform.OS === 'ios' ? 'http://localhost:5050' : 'http://10.0.2.2:5050';
+const BASE_URL =
+  Platform.OS === 'ios'
+    ? 'http://127.0.0.1:5050' // эсвэл таны Mac-ийн IP
+    : 'http://10.0.2.2:5050';
 
 const ProfileEditScreen = () => {
   const [form, setForm] = useState({
@@ -62,17 +65,35 @@ const ProfileEditScreen = () => {
   }, []);
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
+    // 1. Permission асуух
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Зөвшөөрөл', 'Зураг оруулахын тулд зөвшөөрөл шаардлагатай.');
+      return;
+    }
+  
+    try {
+      // 2. Зураг сонгох
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+  
+      // 3. canceled болон assets шалгах
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        console.log('Зураг сонгоогүй');
+        return;
+      }
+  
       const picked = result.assets[0];
       setAvatarUri(picked.uri);
+    } catch (error) {
+      console.error('Зураг сонгох үед алдаа:', error);
+      Alert.alert('Алдаа', 'Зураг сонгох үед алдаа гарлаа.');
     }
   };
+  
 
   const handleSave = async () => {
     try {

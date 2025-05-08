@@ -1,3 +1,4 @@
+//GroupDetailModal.tsx
 import React, { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image, Platform } from 'react-native';
 import { Modalize } from 'react-native-modalize';
@@ -114,7 +115,7 @@ const GroupDetailModal = forwardRef<GroupDetailModalRef, GroupDetailModalProps>(
           <View style={styles.modalContent}>
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => {handleGroupOpen} }>
+              <TouchableOpacity onPress={() => handleGroupOpen(group.id)}>
               <Image 
                   source={group.id === 'add'
                     ? group.image
@@ -203,7 +204,7 @@ const GroupDetailModal = forwardRef<GroupDetailModalRef, GroupDetailModalProps>(
       activeOpacity={0.85}
       onPress={() => {
         router.push({
-          pathname: '/Engineer/Instruction/InstructionSlideScreen',
+          pathname: '/Engineer/Instruction/EmployeeViewed',
           params: { instructionId: instruction.id },
         });
       }}
