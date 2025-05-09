@@ -9,6 +9,7 @@ import GroupDetailModal, { GroupDetailModalRef } from '@/app/components/modals/G
 import PhoneNumberModal, { PhoneNumberModalRef } from '@/app/components/modals/GroupListModals/PhoneAddModal';
 import EmailAddModal, { EmailAddModalRef } from '@/app/components/modals/GroupListModals/EmailAddModal';
 import GroupAddModal, { GroupAddModalRef } from '@/app/components/modals/GroupListModals/GroupAddModal';
+import { BASE_URL } from '../../../src/config'; // ← шинэчлэгдсэн
 
 export default function GroupList() {
   const [groups, setGroups] = useState<any[]>([]);
@@ -22,8 +23,10 @@ export default function GroupList() {
   const fetchGroups = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const res = await axios.get('http://localhost:5050/api/safety-engineer/groups', {
+      const res = await axios.get(`${BASE_URL}/api/safety-engineer/groups`, {
         headers: { Authorization: `Bearer ${token}` },
+      
+      
       });
 
       const fetchedGroups = res.data;
@@ -91,7 +94,7 @@ export default function GroupList() {
                 group.id === 'add' 
                   ? group.image
                   : group.profile?.image
-                    ? { uri: `http://localhost:5050${group.profile.image}` }
+                    ? { uri: `${BASE_URL}${group.profile.image}` }
                     : require('@/assets/images/add-group.png') // default зураг fallback
               }
               style={[
@@ -120,7 +123,7 @@ export default function GroupList() {
 
 const styles = StyleSheet.create({
   container: { backgroundColor: '#EFF5FF', padding: 20, borderRadius: 12 },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 10, color: '#000' },
+  title: { fontSize: 22, fontWeight: '400', marginBottom: 10, color: '#000' },
   scrollContainer: { flexDirection: 'row', alignItems: 'center' },
   groupItem: { marginRight: 15, alignItems: 'center' },
   groupImage: { width: 70, height: 70, borderRadius: 80, backgroundColor: '#fff'},

@@ -16,8 +16,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../../components/EngineerComponents/Header';
 
-const BASE_URL = 'http://localhost:5050';
 
+import { BASE_URL } from '../../../src/config';
 const AddInstructionScreen = () => {
   const router = useRouter();
 
@@ -175,6 +175,7 @@ const AddInstructionScreen = () => {
             placeholder="Тайлбар оруулах"
             value={description}
             onChangeText={setDescription}
+            placeholderTextColor="#999"
             multiline
           />
         </View>
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '500',
     color: '#2F487F',
   },
   inputSection: {
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '500',
     marginBottom: 6,
   },
   input: {
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
   },
   selectButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: '400',
   },
   saveButton: {
     backgroundColor: '#2F487F',
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: '400',
     fontSize: 16,
   },
 });

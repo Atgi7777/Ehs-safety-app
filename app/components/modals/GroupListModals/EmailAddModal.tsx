@@ -5,8 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 
-const BASE_URL = Platform.OS === 'ios' ? 'http://localhost:5050' : 'http://10.0.2.2:5050';
 
+import { BASE_URL } from '../../../../src/config';
 export type EmailAddModalRef = {
   open: (groupId: number) => void;
 };
@@ -68,7 +68,7 @@ const EmailAddModal = forwardRef<EmailAddModalRef>((_, ref) => {
           autoCapitalize="none"
         />
         <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
-          <Text style={styles.addButtonText}>+ Нэмэх</Text>
+          <Text style={styles.addButtonText}>Нэмэх</Text>
         </TouchableOpacity>
       </View>
     </Modalize>
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '400',
     color: '#2F487F',
     textAlign: 'center',
     marginBottom: 24,
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#F1F4F9',
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: 14,
     marginBottom: 20,
     borderColor: '#DCE4F2',
     borderWidth: 1,
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: '400',
     fontSize: 16,
   },
 });

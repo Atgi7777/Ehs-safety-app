@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-const BASE_URL = 'http://localhost:5050';
+import { BASE_URL } from '../../../src/config';
 
 type Group = {
   id: number;

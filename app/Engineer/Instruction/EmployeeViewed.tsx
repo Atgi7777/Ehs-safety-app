@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-const BASE_URL = 'http://localhost:5050';
+import { BASE_URL } from '../../../src/config';
 
 const hardcodedEmployees = [
   {
@@ -66,15 +66,14 @@ const ViewedEmployeesScreen = () => {
 
   return (
     <View style={styles.container}>
-     <View style={styles.headerRow}>
-  <TouchableOpacity onPress={() => router.back()}>
-    <Ionicons name="arrow-back" size={28} color="#2F487F" />
-  </TouchableOpacity>
-  <Text style={styles.header}>Үзсэн ажилтнууд</Text>
-  <View style={{ width: 28 }} /> {/* spacer for header alignment */}
-</View>
-
- 
+      <View style={styles.headerRow}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={28} color="#2F487F" />
+        </TouchableOpacity>
+        <Text style={styles.header}>Үзсэн ажилтнууд</Text>
+        {/* spacer for header alignment */}
+        <View style={{ width: 28 }} />
+      </View>
 
       <FlatList
         data={employees}

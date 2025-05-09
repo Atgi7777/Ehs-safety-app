@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   dash: {
     marginHorizontal: 8,
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '500',
     color: '#999',
   },
   buttonRow: {

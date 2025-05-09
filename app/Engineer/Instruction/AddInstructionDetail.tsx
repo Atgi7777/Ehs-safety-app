@@ -15,6 +15,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Header from '../../components/EngineerComponents/Header';
 import MediaPickerModal, { MediaPickerModalRef } from '../../components/modals/ModalFile';
+import { BASE_URL } from '../../../src/config';
+
+
 
 const AddInstructionDetail = () => {
   const router = useRouter();
@@ -108,7 +111,7 @@ const AddInstructionDetail = () => {
           type: mimeType,
         } as any);
 
-        await fetch(`http://localhost:5050/api/safety-engineer/instruction/${instructionId}/pages`, {
+        await fetch(`${BASE_URL}/api/safety-engineer/instruction/${instructionId}/pages`, {
           method: 'POST',
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -140,8 +143,9 @@ const AddInstructionDetail = () => {
             <TextInput
               multiline
               style={styles.textarea}
-              placeholder="Текст"
+              placeholder="Тайлбар оруулах"
               value={page.description}
+              placeholderTextColor="#999"
               onChangeText={(text) => {
                 const updatedPages = [...pages];
                 updatedPages[index].description = text;
@@ -202,7 +206,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '500',
     marginLeft: 10,
     color: '#2F487F',
   },
@@ -214,7 +218,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '500',
     marginBottom: 8,
   },
   textarea: {
@@ -280,7 +284,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: '400',
     fontSize: 16,
   },
 });

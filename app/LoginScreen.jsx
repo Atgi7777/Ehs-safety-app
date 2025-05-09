@@ -54,6 +54,7 @@ const LoginScreen = () => {
           onChangeText={setEmail}
           style={styles.input}
           autoCapitalize="none"
+          placeholderTextColor="#999"
         />
       </View>
 
@@ -66,6 +67,7 @@ const LoginScreen = () => {
           value={password}
           onChangeText={setPassword}
           style={styles.input}
+          placeholderTextColor="#999"
         />
       </View>
 
@@ -90,23 +92,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#23476A',
     fontFamily: 'MadimiOne',
-    marginLeft: -50,
+    marginLeft: -90,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#fff',
     marginBottom: 100,
     backgroundColor: '#23476A',
     borderRadius: 20,
     padding: 2,
     paddingHorizontal: 10,
-    marginLeft: 150,
+    marginLeft: 120,
   },
   label: {
     alignSelf: 'flex-start',
     marginLeft: 8,
     marginBottom: 8,
-    color: '#333',
+    color: '#212121',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#000',
+    color: '#333',
   },
   button: {
     backgroundColor: '#23476A',
@@ -140,7 +142,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: '400',
     fontSize: 16,
   },
 });

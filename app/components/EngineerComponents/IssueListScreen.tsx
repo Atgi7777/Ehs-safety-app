@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: '400',
     marginBottom: 16,
     color: '#1F2937',
     textAlign: 'center',
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   title: {
-    fontWeight: 'bold',
+    fontWeight: '400',
     fontSize: 16,
     color: '#111827',
     flex: 1,

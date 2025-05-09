@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   },
   groupName: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: '500',
     color: '#000',
     alignItems: 'center',
     marginLeft: 40,

@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../../../../src/config';
 
 
 export type GroupAddModalRef = {
@@ -77,7 +78,7 @@ const GroupAddModal = forwardRef<GroupAddModalRef>((props, ref) => {
       }
 
       const response = await axios.post(
-        'http://localhost:5050/api/safety-engineer/makeGroup',
+        '${BASE_URL}/api/safety-engineer/makeGroup',
         formData,
         {
           headers: {
@@ -110,19 +111,19 @@ const GroupAddModal = forwardRef<GroupAddModalRef>((props, ref) => {
           {/* Group Name */}
           <View style={styles.inputBox}>
             <Text style={styles.label}>Бүлгийн нэр</Text>
-            <TextInput style={styles.input} placeholder="Бүлгийн нэр" value={groupName} onChangeText={setGroupName} />
+            <TextInput style={styles.input} placeholder="Бүлгийн нэр" value={groupName} onChangeText={setGroupName} placeholderTextColor="#999" />
           </View>
 
           {/* Activity */}
           <View style={styles.inputBox}>
             <Text style={styles.label}>Үйл ажиллагаа</Text>
-            <TextInput style={styles.input} placeholder="Үйл ажиллагаа" value={activity} onChangeText={setActivity} />
+            <TextInput style={styles.input} placeholder="Үйл ажиллагаа" value={activity} onChangeText={setActivity} placeholderTextColor="#999"/>
           </View>
 
           {/* Planned Task */}
           <View style={styles.inputBox}>
             <Text style={styles.label}>Төлөвлөсөн ажил</Text>
-            <TextInput style={styles.input} placeholder="Төлөвлөсөн ажил" value={plannedTask} onChangeText={setPlannedTask} />
+            <TextInput style={styles.input} placeholder="Төлөвлөсөн ажил" value={plannedTask} onChangeText={setPlannedTask} placeholderTextColor="#999"/>
           </View>
 
           {/* Work Description */}
@@ -134,6 +135,7 @@ const GroupAddModal = forwardRef<GroupAddModalRef>((props, ref) => {
               multiline
               value={workDescription}
               onChangeText={setWorkDescription}
+              placeholderTextColor="#999"
             />
           </View>
 
@@ -164,15 +166,15 @@ const GroupAddModal = forwardRef<GroupAddModalRef>((props, ref) => {
 export default GroupAddModal;
 
 const styles = StyleSheet.create({
-  container: { padding: 20 },
+  container: { padding: 20 , paddingBottom: 160 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold', marginLeft: 10, color: '#2F487F' },
+  headerTitle: { fontSize: 18, fontWeight: '500', marginLeft: 10, color: '#2F487F' },
   inputBox: { marginBottom: 20 },
-  label: { fontSize: 14, color: '#555', marginBottom: 5 },
+  label: { fontSize: 14, color: 'black', marginBottom: 5 },
   input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10 },
   saveButton: { backgroundColor: '#2F487F', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
-  saveButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  saveButtonText: { color: '#fff', fontWeight: '500', fontSize: 16 },
   imagePreview: { width: 100, height: 100, borderRadius: 8, marginBottom: 10 },
   uploadButton: { backgroundColor: '#ddd', padding: 10, borderRadius: 8, alignItems: 'center' },
-  uploadButtonText: { color: '#333', fontWeight: 'bold' },
+  uploadButtonText: { color: '#333', fontWeight: '500' },
 });

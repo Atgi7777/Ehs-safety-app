@@ -8,7 +8,11 @@ import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'http://localhost:5050'; 
+import { BASE_URL } from '../../../src/config'; // ← шинэчлэгдсэн
+import { Dimensions } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
+const baseFontSize = width * 0.04;
 
 const InstructionListScreen = () => {
   const router = useRouter();
@@ -235,7 +239,10 @@ const InstructionListScreen = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
+  
+
   modal: { justifyContent: 'flex-end', margin: 0 },
   modalContent: {
     backgroundColor: 'white',
@@ -250,13 +257,13 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '400',
     color: '#2F487F',
   },
   doneButton: {
     fontSize: 16,
     color: '#2F487F',
-    fontWeight: 'bold',
+    fontWeight: '400',
   },
   createdBy: {
     marginBottom: 10,
@@ -272,10 +279,10 @@ const styles = StyleSheet.create({
   },
   instructionButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: '400',
   },
   label: {
-    fontWeight: 'bold',
+    fontWeight: '400',
     marginBottom: 4,
   },
   descriptionBox: {
@@ -289,7 +296,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   shareTitle: {
-    fontWeight: 'bold',
+    fontWeight: '400',
     marginBottom: 8,
   },
   shareButton: {
@@ -301,7 +308,8 @@ const styles = StyleSheet.create({
   },
   shareButtonText: {
     color: '#2F487F',
-    fontWeight: 'bold',
+    fontWeight: '400',
+    
   },
   editRow: {
     flexDirection: 'row',
@@ -329,10 +337,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: { paddingBottom: 100 },
   container: { padding: 16 },
-  sectionTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 12 },
+  sectionTitle: { fontSize: 22, fontWeight: '400', marginBottom: 12 },
   instructionBlock: { backgroundColor: '#fff', padding: 12, borderRadius: 10, marginBottom: 12 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 4, marginBottom: 6, borderBottomWidth: 1, borderColor: '#ddd' },
-  subTitle: { fontWeight: '600', fontSize: 14 },
+  subTitle: { fontWeight: '400', fontSize: 14 ,  },
   statusRow: { flexDirection: 'row', justifyContent: 'space-between' },
   statusWrapper: { flexDirection: 'row', alignItems: 'center' },
   statusText: { color: '#2F5AA8', fontSize: 14, marginLeft: 4 },

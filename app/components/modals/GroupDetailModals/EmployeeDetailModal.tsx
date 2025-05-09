@@ -15,8 +15,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import EmployeeInstructionModal, { EmployeeInstructionModalRef } from '@/app/components/modals/GroupDetailModals/EmployeeInstructionModal';
+import { BASE_URL } from '../../../../src/config'; 
 
-const BASE_URL = Platform.OS === 'ios' ? 'http://localhost:5050' : 'http://10.0.2.2:5050';
 
 export type EmployeeDetailModalRef = {
   open: (employeeId: number, groupId: number) => void;
@@ -43,7 +43,9 @@ const EmployeeDetailModal = forwardRef<EmployeeDetailModalRef>((_, ref) => {
         });
         setEmployee(res.data);
       } catch (err) {
-        console.error('❌ Ажилтны мэдээлэл татаж чадсангүй:', err);
+        console.error('❌ Ажилтны мэдээлэл татаж чадсангүй:', err );
+        
+
         setEmployee(null);
       } finally {
         setLoading(false);
@@ -64,7 +66,8 @@ const EmployeeDetailModal = forwardRef<EmployeeDetailModalRef>((_, ref) => {
 
     try {
       const token = await AsyncStorage.getItem('userToken');
-      await axios.delete(`${BASE_URL}/api/group/group/${groupId}/remove/${employee.id}`, {
+     
+      await axios.delete(`${BASE_URL}/api/group/${groupId}/remove/${employee.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -153,10 +156,10 @@ export default EmployeeDetailModal;
 const styles = StyleSheet.create({
   modalContent: { padding: 20 },
   cancelText: { color: '#2F487F', alignSelf: 'flex-start' },
-  title: { fontSize: 18, fontWeight: 'bold', marginVertical: 10, textAlign: 'center' },
+  title: { fontSize: 18, fontWeight: '500', marginVertical: 10, textAlign: 'center' },
   avatar: { width: 80, height: 80, borderRadius: 40, marginVertical: 10, alignSelf: 'center' },
   infoRow: { flexDirection: 'row', marginVertical: 5 },
-  label: { fontWeight: 'bold', marginRight: 5 },
+  label: { fontWeight: '600', marginRight: 5 },
   value: { flexShrink: 1 },
   instructionButton: {
     borderWidth: 1,
@@ -166,7 +169,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: 'center',
   },
-  instructionButtonText: { color: '#2F487F', fontWeight: 'bold' },
+  instructionButtonText: { color: '#2F487F', fontWeight: '500' },
   removeButton: {
     backgroundColor: '#2F487F',
     padding: 12,
@@ -174,5 +177,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
     alignItems: 'center',
   },
-  removeButtonText: { color: 'white', fontWeight: 'bold' },
+  removeButtonText: { color: 'white', fontWeight: '500' },
 });

@@ -1,14 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
+import { BASE_URL } from '../config'; // config файлаа зөв замаар оруулна
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5050/api', // Таны серверийн IP хаяг
+  baseURL: BASE_URL,
   timeout: 5000,
 });
 
-// Бүх хүсэлтэнд Token нэмэх
 axiosInstance.interceptors.request.use(
   async (config) => {
+    console.log('📤 API Request:', config.baseURL + config.url); // ← энд baseURL + path хэвлэ
     const token = await AsyncStorage.getItem('userToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -17,5 +18,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+
 
 export default axiosInstance;

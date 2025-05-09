@@ -17,10 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ScrollView } from 'react-native'; // нэмэх
 
 
-const BASE_URL =
-  Platform.OS === 'ios'
-    ? 'http://127.0.0.1:5050' // эсвэл таны Mac-ийн IP
-    : 'http://10.0.2.2:5050';
+import { BASE_URL } from '../../../src/config';
 
 const ProfileEditScreen = () => {
   const [form, setForm] = useState({

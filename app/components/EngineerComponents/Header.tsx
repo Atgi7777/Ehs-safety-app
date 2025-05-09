@@ -1,13 +1,10 @@
-// engineer ийн header 
 import React, { useEffect, useState } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-
-const BASE_URL = 'http://localhost:5050';
+import { BASE_URL } from '../../../src/config';
 
 const Header = () => {
   const [profile, setProfile] = useState<any>(null);
@@ -21,7 +18,8 @@ const Header = () => {
 
         const res = await axios.get(`${BASE_URL}/api/safety-engineer/me`, config);
         const avatar = res.data.avatar ? `${BASE_URL}${res.data.avatar}` : null;
-        setProfile({ ...res.data, avatar });
+        const name = res.data.name;
+        setProfile({ ...res.data, avatar, name });
       } catch (err) {
         console.error('ХАБ инженерийн профайл татахад алдаа:', err);
       }
@@ -31,21 +29,25 @@ const Header = () => {
   }, []);
 
   const handleProfilePress = () => {
-    router.push('/Engineer/Tabs/ProfileScreen'); // ← Энэ нь tab доторх профайл руу шилжинэ
+    router.push('/Engineer/Tabs/ProfileScreen');
   };
   const handleHomePress = () => {
     router.push('/Engineer/Tabs/EngineerScreen');
   };
 
-  return ( 
+  return (
     <View style={styles.header}>
       <View style={styles.headerContent}>
-      <TouchableOpacity onPress={handleHomePress}>
-        <Image source={require('../../../assets/images/logo.png')} style={styles.logo} />
-        </TouchableOpacity>
+        
+        <TouchableOpacity onPress={handleHomePress} style={styles.logoContainer}>
+  <Image source={require('../../../assets/images/logo.png')} style={styles.logo} />
+  
+</TouchableOpacity>
+
+
+        
         <View style={styles.spacer} />
-        <Ionicons name="notifications-outline" size={30} color="#2F487F" style={{ marginRight: 10 }} />
-        {/* // хонх яваандаа ажилдаг болгоноо ххэ  */}
+        <Ionicons name="notifications-outline" size={27} color="#2F487F" style={{ marginRight: 20 }} />
         <TouchableOpacity onPress={handleProfilePress}>
           <Image
             source={
@@ -62,34 +64,37 @@ const Header = () => {
 };
 
 const styles = StyleSheet.create({
-  
   header: {
-    padding: 16,
+    paddingHorizontal: 16,
     backgroundColor: '#ffffff',
     flexDirection: 'row',
-   
-  
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 45,
+    paddingTop: 40,
+    paddingBottom: 5,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   logo: {
-    width: 60,
+    width: 90,
     height: 60,
-    marginRight: 10,
+    marginRight: 8,
   },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 50,
-  },
+  
   spacer: {
     flex: 1,
+  },
+  avatar: {
+    width: 55,
+    height: 55,
+    borderRadius: 50,
   },
 });
 

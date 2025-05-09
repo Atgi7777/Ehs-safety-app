@@ -15,9 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Header from '@/app/components/EngineerComponents/Header';
 
-const BASE_URL = Platform.OS === 'ios'
-  ? 'http://127.0.0.1:5050'  // эсвэл таны Mac IP
-  : 'http://10.0.2.2:5050';
+import { BASE_URL } from '../../../src/config';
 
 
 const ProfileScreen = () => {
@@ -166,7 +164,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '500',
   },
   role: {
     fontSize: 16,
@@ -197,7 +195,7 @@ const styles = StyleSheet.create({
   },
   cardValue: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: '500',
     marginVertical: 5,
     color: '#2F487F',
   },
@@ -215,7 +213,7 @@ const styles = StyleSheet.create({
   },
   createButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: '500',
     fontSize: 16,
   },
   logoutButton: {
@@ -228,7 +226,7 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: '#2F487F',
-    fontWeight: 'bold',
+    fontWeight: '500',
     fontSize: 16,
   },
   tabBar: {

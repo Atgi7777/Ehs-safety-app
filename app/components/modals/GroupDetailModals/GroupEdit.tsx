@@ -16,9 +16,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
 
-const BASE_URL = Platform.OS === 'ios'
-  ? 'http://127.0.0.1:5050' // эсвэл your Mac IP
-  : 'http://10.0.2.2:5050';
+
+import { BASE_URL } from '../../../../src/config';
 
 const EditGroup = () => {
   const { groupId } = useLocalSearchParams();
@@ -231,7 +230,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '400',
     marginBottom: 24,
     color: '#1F2937',
     textAlign: 'center',
@@ -265,7 +264,7 @@ const styles = StyleSheet.create({
   },
   saveBtnText: {
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: '500',
     fontSize: 16,
   },
 });

@@ -15,8 +15,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 
-const BASE_URL =
-  Platform.OS === 'ios' ? 'http://localhost:5050' : 'http://10.0.2.2:5050';
+import { BASE_URL } from '../../../../src/config';
 
 const GroupModals = () => {
   const { groupId } = useLocalSearchParams();
@@ -97,7 +96,7 @@ const GroupModals = () => {
 </TouchableOpacity>
 
       </View>
-
+      
       <Image
         source={
           group.profile?.image
@@ -106,8 +105,8 @@ const GroupModals = () => {
         }
         style={styles.groupImage}
       />
-
-      <Text style={styles.groupName}>{group.name}</Text>
+<Text style={styles.groupName}>{group.name}</Text>
+      
 
       <View style={styles.infoBox}>
         <Text style={styles.infoLabel}>Ажлын чиглэл:</Text>
@@ -180,7 +179,7 @@ const styles = StyleSheet.create({
   },
   groupName: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '400',
     color: '#1F2937',
     marginBottom: 14,
     textAlign: 'center',
@@ -199,7 +198,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '400',
     color: '#374151',
     marginTop: 16,
     textTransform: 'uppercase',
@@ -227,7 +226,7 @@ const styles = StyleSheet.create({
   deleteBtnText: {
     color: '#fff',
     marginLeft: 10,
-    fontWeight: '600',
+    fontWeight: '400',
     fontSize: 16,
   },
 });

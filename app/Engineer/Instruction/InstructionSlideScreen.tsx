@@ -1,15 +1,18 @@
-// Updated InstructionSlideScreen to load slides dynamically from backend
-//Engineer/instruction/InstructionSlideScreen
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Header from '../../components/EngineerComponents/Header';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
-
-const BASE_URL = 'http://localhost:5050';
+import { Audio, Video, ResizeMode } from 'expo-av';
+import { BASE_URL } from '../../../src/config';
 
 const InstructionSlideScreen = () => {
   const router = useRouter();
@@ -68,7 +71,6 @@ const InstructionSlideScreen = () => {
   }
 
   const slide = slides[currentSlide];
-  const imageUrl = `${BASE_URL}/${slide.image_url}`;
 
   return (
     <View style={styles.container}>
@@ -83,7 +85,42 @@ const InstructionSlideScreen = () => {
       </View>
 
       <View style={styles.content}>
-        <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+        {/* Dynamic media rendering */}
+        {slide.image_url ? (
+          <Image
+            source={{ uri: `${BASE_URL}/${slide.image_url}` }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        ) : slide.video_url ? (
+          <Video
+            source={{ uri: `${BASE_URL}/${slide.video_url}` }}
+            style={styles.image}
+            useNativeControls
+            resizeMode={ResizeMode.CONTAIN}
+            isLooping
+          />
+        ) : slide.audio_url ? (
+          <View style={styles.audioBox}>
+            <Text style={styles.audioLabel}>
+              🎵 Аудио файл: {slide.audio_url.split('/').pop()}
+            </Text>
+            <TouchableOpacity
+              style={styles.audioButton}
+              onPress={async () => {
+                const { sound } = await Audio.Sound.createAsync({
+                  uri: `${BASE_URL}/${slide.audio_url}`,
+                });
+                await sound.playAsync();
+              }}
+            >
+              <Ionicons name="play-circle" size={36} color="#2F487F" />
+              <Text style={styles.playText}>Play</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Text style={{ color: '#999', fontStyle: 'italic' }}>Медиа файл байхгүй</Text>
+        )}
 
         <View style={styles.navigationRow}>
           <TouchableOpacity onPress={handlePrev} disabled={currentSlide === 0}>
@@ -151,6 +188,7 @@ const styles = StyleSheet.create({
     height: 220,
     borderRadius: 12,
     marginBottom: 12,
+    backgroundColor: '#000', // for videos too
   },
   navigationRow: {
     flexDirection: 'row',
@@ -191,5 +229,28 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     textAlign: 'center',
+  },
+  audioBox: {
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    width: '90%',
+  },
+  audioLabel: {
+    fontSize: 14,
+    marginBottom: 8,
+    color: '#333',
+    textAlign: 'center',
+  },
+  audioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  playText: {
+    fontSize: 16,
+    color: '#2F487F',
+    fontWeight: '500',
   },
 });
