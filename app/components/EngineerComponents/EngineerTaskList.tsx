@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '400',
+    fontWeight: '500',
     color: '#2F487F',
   },
   doneButton: {

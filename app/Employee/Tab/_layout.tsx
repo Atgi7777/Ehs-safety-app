@@ -1,7 +1,7 @@
 // app/Employee/Tab/_layout.tsx
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions , StatusBar} from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -11,10 +11,13 @@ const icons: { [key: string]: keyof typeof Ionicons.glyphMap } = {
   SafetyScreen: 'shirt-outline',
   InstructionScreen: 'book-outline',
   ProfileScreen: 'person-outline',
-};
+}; 
 
 export default function EmployeeTabLayout() {
   return (
+      <>
+          <StatusBar barStyle="dark-content" backgroundColor="white" />
+    
     <Tabs
       screenOptions={({ route }) => ({
         headerShown: false,
@@ -61,6 +64,7 @@ export default function EmployeeTabLayout() {
       <Tabs.Screen name="InstructionScreen" />
       <Tabs.Screen name="ProfileScreen" />
     </Tabs>
+    </>
   );
 }
 

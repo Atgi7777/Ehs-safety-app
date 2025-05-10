@@ -1,76 +1,124 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // ➡️ imports хэсэгт нэмнэ
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { BASE_URL } from '../../../src/config';
+import Header from '../../components/EmployeeComponents/Header';
 
 
 const ProfileScreen = () => {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
 
-  const handleLogout = async () => {
+useEffect(() => {
+  const fetchProfile = async () => {
     try {
-      await AsyncStorage.removeItem('token'); // Token устгах
-      router.replace('/LoginScreen'); // Login дэлгэц рүү буцаах
-    } catch (error) {
-      console.error('Logout error:', error);
+const token = await AsyncStorage.getItem('userToken'); // ✅ ижил нэртэй болгоно
+      if (!token) {
+        Alert.alert('Алдаа', 'Токен олдсонгүй. Та дахин нэвтэрнэ үү.');
+        router.replace('/LoginScreen');
+        return;
+      }
+
+      const res = await axios.get(`${BASE_URL}/api/employee/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProfile(res.data);
+    } catch (err: any) {
+      console.error('Профайл татаж чадсангүй:', err);
+      Alert.alert(
+        'Алдаа',
+        err?.response?.status === 403
+          ? 'Нэвтрэх эрх дууссан байна. Дахин нэвтэрнэ үү.'
+          : 'Мэдээлэл татаж чадсангүй'
+      );
+      router.replace('/LoginScreen');
+    } finally {
+      setLoading(false);
     }
   };
-  
+  fetchProfile();
+}, []);
+
+
+  const handleLogout = async () => {
+    Alert.alert('Системээс гарах', 'Та гарахдаа итгэлтэй байна уу?', [
+      { text: 'Цуцлах', style: 'cancel' },
+      {
+        text: 'Гарах',
+        style: 'destructive',
+        onPress: async () => {
+          await AsyncStorage.removeItem('token');
+          router.replace('/LoginScreen');
+        },
+      },
+    ]);
+  };
+
+  const handleEdit = () => {
+    router.push('/Employee/Profile/ProfileEditScreen');
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#2F487F" />
+      </View>
+    );
+  }
 
   return (
+   
     <View style={styles.container}>
       
-      {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={35} color="#2F487F" />
+        <Ionicons name="arrow-back" size={30} color="#2F487F" />
       </TouchableOpacity>
 
-      {/* Profile Info */}
-      <View style={styles.profileContainer}>
+      <Text style={styles.title}>Профайл</Text>
+
+      <View style={styles.card}>
         <Image
-          source={{ uri: 'https://i.pravatar.cc/300' }}
+          source={
+            profile?.profile
+              ? { uri: `${BASE_URL}${profile.profile}` }
+              : require('@/assets/images/user-avatar.png')
+          }
           style={styles.avatar}
         />
-        <Text style={styles.name}>Bat-Erdene Enkbayar</Text>
-        <Text style={styles.role}>Ахлах инженер</Text>
-        <Text style={styles.company}>"ABC" ХХК</Text>
-        <Text style={styles.joinDate}>Ажилд орсон огноо: 2022.05.10</Text>
+        <Text style={styles.name}>{profile?.name}</Text>
+        <Text style={styles.role}>Ажилтан</Text>
+        <Text style={styles.company}>{profile?.organization?.name || '---'}</Text>
+        <Text style={styles.date}>
+          {new Date(profile.created_at).toLocaleDateString('mn-MN')} элссэн
+        </Text>
       </View>
 
-      {/* Statistics */}
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
-          <View style={styles.iconAndNumber}>
-            <Image
-              source={require('../../../assets/images/check.png')}
-              style={styles.icon}
-            />
-            <Text style={styles.statNumber}>120</Text>
-          </View>
-          <Text style={styles.statLabel}>Үзсэн зааварчилгааны тоо</Text>
+          <Ionicons name="checkmark-done-circle" size={28} color="#2F487F" />
+          <Text style={styles.statNumber}>120</Text>
+          <Text style={styles.statLabel}>Үзсэн заавар</Text>
         </View>
-
         <View style={styles.statBox}>
-          <View style={styles.iconAndNumber}>
-            <Image
-              source={require('../../../assets/images/graduation.png')}
-              style={styles.iconn}
-            />
-            <Text style={styles.statNumber}>6</Text>
-          </View>
-          <Text style={styles.statLabel}>Хамрагдсан сургалт</Text>
+          <Ionicons name="school" size={28} color="#2F487F" />
+          <Text style={styles.statNumber}>6</Text>
+          <Text style={styles.statLabel}>Сургалт</Text>
         </View>
       </View>
 
-      {/* Button */}
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Засах</Text>
+      <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+        <Ionicons name="create-outline" size={18} color="#fff" />
+        <Text style={styles.editButtonText}>Мэдээлэл засах</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-  <Text style={styles.logoutButtonText}>Гарах</Text>
-</TouchableOpacity>
 
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={18} color="#2F487F" />
+        <Text style={styles.logoutButtonText}>Системээс гарах</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -80,105 +128,124 @@ export default ProfileScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 100,
+    backgroundColor: '#F5F8FE',
+    paddingHorizontal: 20,
+    paddingTop: 60,
     alignItems: 'center',
   },
   backButton: {
     position: 'absolute',
-    top: 60,
+    top: 50,
     left: 20,
     zIndex: 10,
   },
-  profileContainer: {
-    alignItems: 'center',
+  title: {
+    fontSize: 22,
+    fontWeight: '500',
+    color: '#2F487F',
     marginBottom: 20,
   },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    alignItems: 'center',
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 8,
+    elevation: 3,
+    marginBottom: 20,
+    width: '100%',
+  },
   avatar: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#2F487F',
   },
   name: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2F487F',
   },
   role: {
-    fontSize: 16,
-    marginVertical: 2,
+    fontSize: 14,
+    color: '#555',
+    marginTop: 4,
   },
   company: {
-    fontSize: 14,
-    color: '#999',
+    fontSize: 13,
+    color: '#777',
+    marginTop: 2,
   },
-  joinDate: {
-    fontSize: 14,
+  date: {
+    fontSize: 12,
     color: '#999',
+    marginTop: 2,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '90%',
-    marginTop: 20,
-    color: '#2F487F',
-
+    marginVertical: 15,
+    width: '100%',
   },
   statBox: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 12,
     flex: 1,
+    backgroundColor: '#fff',
     marginHorizontal: 6,
+    borderRadius: 10,
     alignItems: 'center',
-  },
-  iconAndNumber: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  icon: {
-    width: 30,
-    height: 30,
-    marginRight: 6,
-  },
-  iconn:{
-    width: 40,
-    height: 40,
-    marginRight: 6,
+    paddingVertical: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#2F487F',
+    marginTop: 4,
   },
   statLabel: {
     fontSize: 12,
-    textAlign: 'center',
+    color: '#777',
+    marginTop: 2,
   },
-  button: {
-    marginTop: 30,
+  editButton: {
+    flexDirection: 'row',
     backgroundColor: '#2F487F',
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 8,
+    padding: 14,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    width: '100%',
   },
-  buttonText: {
+  editButtonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   logoutButton: {
-    marginTop: 25,
-    backgroundColor: '#C04747', // Улаан товч
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 8,
+    flexDirection: 'row',
+    borderColor: '#2F487F',
+    borderWidth: 1.2,
+    padding: 14,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 12,
+    width: '100%',
   },
   logoutButtonText: {
-    color: '#fff',
+    color: '#2F487F',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    marginLeft: 8,
   },
-  
 });

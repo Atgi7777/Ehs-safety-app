@@ -1,7 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import {
+  View, Text, StyleSheet, Image, ActivityIndicator, TouchableOpacity, Dimensions
+} from 'react-native';
 import { useFonts } from 'expo-font';
-import { Ionicons } from '@expo/vector-icons'; // ← Сумны икон
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+
+const { width } = Dimensions.get('window');
+const isSmallDevice = width < 360;
 
 type StatisticsProps = {
   trainingCount: number;
@@ -12,6 +18,8 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
   const [fontsLoaded] = useFonts({
     'AlumniSans-Bold': require('../../../assets/fonts/AlumniSans-Regular.ttf'),
   });
+
+  const router = useRouter();
 
   if (!fontsLoaded) {
     return (
@@ -25,40 +33,43 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
     <View style={styles.statsContainer}>
       <View style={styles.statItem}>
         <View style={styles.topRightIcon}>
-          <Ionicons name="chevron-forward-outline" size={40} color="#B0B0B0" />
+          <Ionicons name="chevron-forward-outline" size={30} color="#B0B0B0" />
         </View>
         <View style={styles.iconRow}>
-          <Image 
-            source={require('../../../assets/images/graduation-cap.png')} 
-            style={styles.logo} 
+          <Image
+            source={require('../../../assets/images/graduation-cap.png')}
+            style={styles.logo}
           />
           <Text style={styles.statNumber}>{trainingCount}</Text>
         </View>
         <Text style={styles.statLabel}>Сургалт</Text>
       </View>
 
-      <View style={styles.statItem}>
+      <TouchableOpacity style={styles.statItem} onPress={() => router.push('/Employee/Tab/ReportScreen')}>
         <View style={styles.topRightIcon}>
-          <Ionicons name="chevron-forward-outline" size={40} color="#B0B0B0" />
+          <Ionicons name="chevron-forward-outline" size={30} color="#B0B0B0" />
         </View>
         <View style={styles.iconRow}>
-          <Image 
-            source={require('../../../assets/images/info.png')} 
-            style={styles.logo2} 
+          <Image
+            source={require('../../../assets/images/info.png')}
+            style={styles.logo}
           />
           <Text style={styles.statNumber}>{inquiryCount}</Text>
         </View>
         <Text style={styles.statLabel}>Асуудал</Text>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    flexWrap: 'wrap',
+    paddingHorizontal: 10,
+    gap: 10,
   },
   iconRow: {
     flexDirection: 'row',
@@ -66,39 +77,37 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   logo: {
-    width: 30,
-    height: 30,
+    width: width * 0.07,
+    height: width * 0.07,
     marginRight: 8,
-  },
-  logo2: {
-    width: 25,
-    height: 25,
-    marginRight: 8,
+    resizeMode: 'contain',
   },
   statItem: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 15,
-    paddingHorizontal: 120,
-    paddingLeft: 10,
+    padding: 16,
     borderRadius: 12,
     alignItems: 'flex-start',
-    position: 'relative', // ← icon байрлуулахад хэрэгтэй
+    width: '48%',
+    position: 'relative',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
   },
   statNumber: {
-    fontSize: 30,
+    fontSize: width * 0.08,
     fontFamily: 'AlumniSans-Bold',
     color: '#000000',
   },
   statLabel: {
-    fontSize: 26,
+    fontSize: width * 0.07,
     fontFamily: 'AlumniSans-Bold',
     color: '#000000',
   },
   topRightIcon: {
     position: 'absolute',
-    top: 10,
+    top: 35,
     right: 10,
-    marginTop: 20,
   },
 });
 

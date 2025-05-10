@@ -1,33 +1,34 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Button } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator , Alert} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Header from '../../components/EmployeeComponents/Header'; // components дотроос зөв зам
-import { useRouter } from 'expo-router';
-
-const slides = [
-  {
-    id: '1',
-    image: require('../../../assets/images/slide1.png'),
-    text: 'Хангалтгүй бэхэлгээ...',
-  },
-  {
-    id: '2',
-    image: require('../../../assets/images/slide2.png'),
-    text: 'Барилга дээр хяналтгүй...',
-  },
-  {
-    id: '3',
-    image: require('../../../assets/images/slide3.png'),
-    text: 'Өвлийн улиралд барилга дээр...',
-  },
-];
+import Header from '../../components/EmployeeComponents/Header';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import axios from 'axios';
+import { BASE_URL } from '../../../src/config';
+import { Video, ResizeMode } from 'expo-av';
 
 const InstructionSlideScreen = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const router = useRouter();
+  const { instructionId, groupId } = useLocalSearchParams(); // 🆕 groupId бас авна
+  
+  const [slides, setSlides] = useState<any[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const handleFinish = () => {
-    router.push('/Employee/Instruction/SignatureConfirmScreen');
+    if (!instructionId || !groupId) {
+     
+      Alert.alert('Алдаа', 'Зааварчилгаа эсвэл бүлгийн мэдээлэл олдсонгүй.');
+      return;
+    }
+
+    router.push({
+      pathname: '/Employee/Instruction/SignatureConfirmScreen',
+      params: {
+        instructionId: instructionId,
+        groupId: groupId,
+      },
+    });
   };
 
   const handleNext = () => {
@@ -43,8 +44,44 @@ const InstructionSlideScreen = () => {
   };
 
   const handleGoBackHome = () => {
-    router.push('/Employee/Tab/EmployeeScreen');
+    router.back();
   };
+
+  useEffect(() => {
+    fetchSlides();
+  }, [instructionId]);
+
+  const fetchSlides = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${BASE_URL}/api/instruction/${instructionId}/slides`);
+      setSlides(res.data);
+    } catch (error) {
+      console.error('Слайдуудыг татахад алдаа:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2F487F" />
+      </View>
+    );
+  }
+
+  if (slides.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Хоосон байна...</Text>
+      </View>
+    );
+  }
+
+  const current = slides[currentSlide];
+  const hasImage = current.image_url && current.image_url !== '';
+  const hasVideo = current.video_url && current.video_url !== '';
 
   return (
     <View style={styles.container}>
@@ -55,14 +92,29 @@ const InstructionSlideScreen = () => {
           <Ionicons name="arrow-back" size={28} color="#2F487F" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Бетон зуурмаг цутгах аюулгүйн зааварчилгаа</Text>
-
-        {/* төвлөрүүлэхийн тулд хоосон зай үлдээсэн */}
+        <Text style={styles.headerTitle}>Аюулгүйн зааварчилгаа</Text>
       </View>
 
-      {/* Slide зураг ба тайлбар */}
       <View style={styles.content}>
-        <Image source={slides[currentSlide].image} style={styles.image} resizeMode="cover" />
+        {hasImage ? (
+          <Image
+          source={{ uri: `${BASE_URL}/${current.image_url}` }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        ) : hasVideo ? (
+          <Video
+            source={{ uri: `${BASE_URL}/${current.video_url}` }}
+            style={styles.image}
+            useNativeControls
+            resizeMode={ResizeMode.COVER}
+            isLooping
+          />
+        ) : (
+          <View style={styles.noMediaBox}>
+            <Text style={{ color: '#999' }}>Медиа файл байхгүй</Text>
+          </View>
+        )}
 
         <View style={styles.navigationRow}>
           <TouchableOpacity onPress={handlePrev} disabled={currentSlide === 0}>
@@ -83,13 +135,12 @@ const InstructionSlideScreen = () => {
         </View>
 
         <View style={styles.descriptionBox}>
-          <Text style={styles.descriptionText}>{slides[currentSlide].text}</Text>
+          <Text style={styles.descriptionText}>{current.description}</Text>
         </View>
       </View>
 
       <Text style={styles.pageNumber}>Хуудас {currentSlide + 1}/{slides.length}</Text>
 
-      {/* Дуусах товч зөвхөн хамгийн сүүлийн слайд дээр гарна */}
       {currentSlide === slides.length - 1 && (
         <TouchableOpacity style={styles.finishButton} onPress={handleFinish}>
           <Text style={styles.finishButtonText}>Гарын үсэг зурах</Text>
@@ -101,10 +152,18 @@ const InstructionSlideScreen = () => {
 
 export default InstructionSlideScreen;
 
+// styles хэсгийг чиний оруулсанхтай адил үлдээе
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#EFF5FF',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -131,6 +190,15 @@ const styles = StyleSheet.create({
     height: 220,
     borderRadius: 12,
     marginBottom: 12,
+  },
+  noMediaBox: {
+    width: '90%',
+    height: 220,
+    borderRadius: 12,
+    backgroundColor: '#ccc',
+    marginBottom: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   navigationRow: {
     flexDirection: 'row',

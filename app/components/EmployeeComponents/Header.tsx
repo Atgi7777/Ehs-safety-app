@@ -1,9 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { BASE_URL } from '../../../src/config';
 
 
 const Header = () => {
+const [user, setProfile] = useState<{ name: string; avatar: string | null }>({ name: '', avatar: null });
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+
+       const res = await axios.get(`${BASE_URL}/api/employee/me`, config);
+     const avatar = res.data.profile ? `${BASE_URL}${res.data.profile}` : '';
+const name = res.data.name;
+setProfile({ name, avatar: avatar });
+
+      } catch (err) {
+        console.error('ХАБ инженерийн профайл татахад алдаа:', err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   return (
     <View style={styles.header}>
       <View style={styles.headerContent}>
@@ -13,14 +39,19 @@ const Header = () => {
           style={styles.logo} 
         />
         <View style={styles.spacer} />
-        {/* Notification Bell Icon */}
-        <Ionicons name="notifications-outline" size={30} color="#2F487F" style={{ marginRight: 10 }} />
 
-        {/* User Avatar */}
-        
+        <View style={styles.notificationContainer}>
+          <Ionicons name="notifications-outline" size={30} color="#2F487F" style={styles.icon} />
+          {notificationCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{notificationCount}</Text>
+            </View>
+          )}
+        </View>
 
+       
         <Image 
-          source={require('../../../assets/images/user-avatar.png')} 
+          source={user.avatar ? { uri: user.avatar} : require('../../../assets/images/user-avatar.png')} 
           style={styles.avatar} 
         />
       </View>
@@ -30,13 +61,12 @@ const Header = () => {
 
 const styles = StyleSheet.create({
   header: {
-    padding: 16,
+    paddingHorizontal: 16,
     backgroundColor: '#fff',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    // marginTop: 40 ,
-    paddingTop: 45,
+    paddingTop: 37,
   },
   headerContent: {
     flexDirection: 'row',
@@ -44,25 +74,38 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logo: {
-    width: 60,
+    width: 90,
     height: 60,
-    marginRight: 10,
+    marginRight: 8,
   },
-  logoo:{
-    width: 30,
-    height: 30,
-    marginRight: 20,
+  spacer: {
+    flex: 1,
   },
   avatar: {
-    width: 48,
-    height: 48,
+    width: 38,
+    height: 38,
     borderRadius: 50,
   },
   icon: {
-    marginHorizontal: 10, // Add some spacing between icons
+    marginRight: 10,
   },
-  spacer: {
-    flex: 1,  // This spacer element will take the remaining space and push the avatar to the right
+  notificationContainer: {
+    position: 'relative',
+    marginRight: 10,
+  },
+  badge: {
+    position: 'absolute',
+    right: -2,
+    top: -5,
+    backgroundColor: 'red',
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });
 

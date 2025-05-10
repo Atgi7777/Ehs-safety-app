@@ -3227,10 +3227,10 @@ expo-linking@~7.0.5:
     expo-constants "~17.0.5"
     invariant "^2.2.4"
 
-expo-location@18.1.4:
-  version "18.1.4"
-  resolved "https://registry.yarnpkg.com/expo-location/-/expo-location-18.1.4.tgz#145396b9ef34f025eea9dfd5d162eab83d87b4cc"
-  integrity sha512-oI3au3IsNR278FHJe57h5FYO/TgnKNeIKXWS5wZNC1OfOcdUNtsEM9MUzP6+yyfHn5ysvpxXSWoa59xHxdv0Tg==
+expo-location@~18.1.4:
+  version "18.1.5"
+  resolved "https://registry.yarnpkg.com/expo-location/-/expo-location-18.1.5.tgz#c809b88ca26d47b254c24a5a09dea6ec8039bda2"
+  integrity sha512-/ugxS4Ort9DbKD0Do6xn4TjeHaA/by5vv0p0PrY5Zbcez1S0AfrQn/4JG/8PLT2imngMwZU9TDKrgxqJQ4RuPQ==
 
 expo-modules-autolinking@2.1.10:
   version "2.1.10"
@@ -5490,10 +5490,10 @@ react-native-is-edge-to-edge@1.1.7, react-native-is-edge-to-edge@^1.1.6:
   resolved "https://registry.npmjs.org/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.1.7.tgz"
   integrity sha512-EH6i7E8epJGIcu7KpfXYXiV2JFIYITtq+rVS8uEb+92naMRBdxhTuS8Wn2Q7j9sqyO0B+Xbaaf9VdipIAmGW4w==
 
-react-native-maps@^1.23.7:
-  version "1.23.7"
-  resolved "https://registry.yarnpkg.com/react-native-maps/-/react-native-maps-1.23.7.tgz#ed07c97f133f505649fcf444fa7deda33c60f34e"
-  integrity sha512-wXIB3PA4lRMUcSle4llUz/5P5T/JsAvvXBYPCxDwHmUGj7cXeDDCyXENQCLoAxQUEncvVr2nDblJEzXPsCtJkg==
+react-native-maps@1.20.1:
+  version "1.20.1"
+  resolved "https://registry.yarnpkg.com/react-native-maps/-/react-native-maps-1.20.1.tgz#f613364886b2f72db56cafcd2bd7d3a35f470dfb"
+  integrity sha512-NZI3B5Z6kxAb8gzb2Wxzu/+P2SlFIg1waHGIpQmazDSCRkNoHNY4g96g+xS0QPSaG/9xRBbDNnd2f2/OW6t6LQ==
   dependencies:
     "@types/geojson" "^7946.0.13"
 
@@ -5528,7 +5528,7 @@ react-native-pell-rich-editor@^1.9.0:
 
 react-native-picker-select@^9.3.1:
   version "9.3.1"
-  resolved "https://registry.npmjs.org/react-native-picker-select/-/react-native-picker-select-9.3.1.tgz"
+  resolved "https://registry.yarnpkg.com/react-native-picker-select/-/react-native-picker-select-9.3.1.tgz#8a2ad51c286fcd54ef60fb883842ec1895c15003"
   integrity sha512-o621HcsKJfJkpYeP/PZQiZTKbf8W7FT08niLFL0v1pGkIQyak5IfzfinV2t+/l1vktGwAH2Tt29LrP/Hc5fk3A==
   dependencies:
     lodash.isequal "^4.5.0"

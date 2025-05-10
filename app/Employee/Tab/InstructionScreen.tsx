@@ -56,7 +56,6 @@ const EmployeeScreen: React.FC<EmployeeTaskListProps> = ({ tasks }) => {
       </View>
 
       <ScrollView style={styles.content}>
-        {/* Сонгосон огноо + Сумнууд */}
         <View style={styles.dateSelector}>
           <TouchableOpacity onPress={goToPreviousDay}>
             <Ionicons name="chevron-back" size={28} color="#2F487F" />
@@ -73,7 +72,7 @@ const EmployeeScreen: React.FC<EmployeeTaskListProps> = ({ tasks }) => {
 
         <TaskList/>
       </ScrollView>
-
+ 
       {/* Огноо сонгох */}
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
@@ -97,7 +96,7 @@ const styles = StyleSheet.create({
   },
   reportButton: {
     position: 'absolute',
-    top: 140, // Header-ийн дээр тааруулах
+    top: 140, 
     right: 20,
     backgroundColor: '#fff',
     borderRadius: 40,
