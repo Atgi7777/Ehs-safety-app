@@ -5,6 +5,9 @@ export default function InstructionLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="InstructionSlideScreen" />
       <Stack.Screen name="SignatureConfirmScreen" />
+       <Stack.Screen name="InstructionHistoryScreen" />
+       <Stack.Screen name="InstructionDetailScreen" />
+      
     </Stack>
   );
 }

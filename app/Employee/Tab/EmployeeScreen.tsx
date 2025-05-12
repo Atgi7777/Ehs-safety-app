@@ -4,7 +4,6 @@ import {
 } from 'react-native';
 import Header from '../../components/EmployeeComponents/Header';
 import Statistics from '../../components/EmployeeComponents/EmployeeStatistics';
-import EmployeeTaskListt from '../../components/EmployeeComponents/EmployeeTaskListt';
 import GroupListScreen from '../../components/EmployeeComponents/GroupListScreen';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -43,11 +42,12 @@ const EmployeeScreen = () => {
         </Text>
       </View>
 
-      <ScrollView style={styles.content}>
-        <Statistics trainingCount={3} inquiryCount={1} />
-        <GroupListScreen />
-        <EmployeeTaskListt />
-      </ScrollView>
+    <View style={styles.content}>
+  <Statistics trainingCount={3} inquiryCount={1} />
+  <GroupListScreen />
+</View>
+
+
     </View>
   );
 }; 

@@ -1,3 +1,4 @@
+//app/_layout.jsx
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';

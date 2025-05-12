@@ -3252,6 +3252,11 @@ expo-modules-core@2.3.12:
   dependencies:
     invariant "^2.2.4"
 
+expo-print@~14.1.4:
+  version "14.1.4"
+  resolved "https://registry.yarnpkg.com/expo-print/-/expo-print-14.1.4.tgz#ff184e1efbc3c61ca896894e85f0e842d96940ba"
+  integrity sha512-qcXdvgwtjgFxX92pd3vdZXZRiFAMysVrCJWrPQvZOSw9OjxeczTOUjcAXRdAC2qFki8Gq/eCnKozSxYN5QCFxw==
+
 expo-router@5.0.6:
   version "5.0.6"
   resolved "https://registry.yarnpkg.com/expo-router/-/expo-router-5.0.6.tgz#e52c9e4f0de5f8878ed71d71a4f2203440016d79"
@@ -3271,6 +3276,11 @@ expo-router@5.0.6:
     semver "~7.6.3"
     server-only "^0.0.1"
     shallowequal "^1.1.0"
+
+expo-sharing@~13.1.5:
+  version "13.1.5"
+  resolved "https://registry.yarnpkg.com/expo-sharing/-/expo-sharing-13.1.5.tgz#73d86cdcc037b46ddc82be224dfd3d6bceec497c"
+  integrity sha512-X/5sAEiWXL2kdoGE3NO5KmbfcmaCWuWVZXHu8OQef7Yig4ZgHFkGD11HKJ5KqDrDg+SRZe4ISd6MxE7vGUgm4w==
 
 expo-splash-screen@~0.29.24:
   version "0.29.24"

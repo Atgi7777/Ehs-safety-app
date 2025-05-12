@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import Header from '../../components/EmployeeComponents/Header'; 
-
+import EmployeeIssueListScreen from '../../components/EmployeeComponents/EmployeeIssueListScreen';
 const ReportScreen = () => {
  
 
@@ -10,7 +10,7 @@ const ReportScreen = () => {
      
       <Header />
     
-
+ <EmployeeIssueListScreen />
  
     </View>
   );

@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 export default function GroupListScreen({ navigation }: any) {
   const [groups, setGroups] = useState<any[]>([]);
   const router = useRouter();
+
   useEffect(() => {
     const fetchGroups = async () => {
       try {
@@ -20,44 +21,43 @@ export default function GroupListScreen({ navigation }: any) {
         console.error('Бүлгүүдийг татахад алдаа:', error);
       }
     };
-
     fetchGroups();
   }, []);
 
- const renderItem = ({ item }: any) => (
-  <TouchableOpacity
-    style={styles.card}
-onPress={() => router.push(`/Employee/Group/GroupDetailScreen?groupId=${item.id}`)}
-
-    activeOpacity={0.8}
-  >
-    {item.image ? (
-      <Image source={{ uri: `${BASE_URL}${item.image}` }} style={styles.avatarImage} />
-    ) : (
-      <View style={styles.avatarPlaceholder}>
-        <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
+  const renderItem = ({ item }: any) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push(`/Employee/Group/GroupDetailScreen?groupId=${item.id}`)}
+      activeOpacity={0.8}
+    >
+      {item.image ? (
+        <Image source={{ uri: `${BASE_URL}${item.image}` }} style={styles.avatarImage} />
+      ) : (
+        <View style={styles.avatarPlaceholder}>
+          <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
+        </View>
+      )}
+      <View style={styles.info}>
+        <View style={styles.nameRow}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#ccc" />
+        </View>
+        <Text style={styles.subtext}>{item.members} гишүүн</Text>
       </View>
-    )}
-    <View style={styles.info}>
-      <View style={styles.nameRow}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Ionicons name="chevron-forward" size={20} color="#ccc" />
-      </View>
-      <Text style={styles.subtext}>{item.members} гишүүн</Text>
-    </View>
-  </TouchableOpacity>
-);
-
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Харьяалагдах бүлгүүд</Text>
-      <FlatList
+      <FlatList 
         data={groups}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
         ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
+      
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -66,8 +66,7 @@ onPress={() => router.push(`/Employee/Group/GroupDetailScreen?groupId=${item.id}
 const styles = StyleSheet.create({
   container: {
     marginTop: 16,
-    flex: 1,
-   
+    paddingBottom: 120,  // flex: 1 болон height устгасан
   },
   header: {
     fontSize: 18,

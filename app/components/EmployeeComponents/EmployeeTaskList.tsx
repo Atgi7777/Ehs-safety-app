@@ -1,94 +1,86 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Modal from 'react-native-modal';
-import { useRouter } from 'expo-router';
+import { format, addDays, subDays } from 'date-fns';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { format } from 'date-fns';
+import Modal from 'react-native-modal';
+import { useRouter } from 'expo-router';
 import { BASE_URL } from '../../../src/config';
 
 const InstructionListScreen = () => {
   const router = useRouter();
-
   const [groups, setGroups] = useState<any[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
-  const [instructions, setInstructions] = useState<any[]>([]);
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [isGroupModalVisible, setGroupModalVisible] = useState(false);
-  const [selectedInstruction, setSelectedInstruction] = useState<any>(null);
+  const [instructionsByGroup, setInstructionsByGroup] = useState<any>({});
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [loading, setLoading] = useState(false);
-
-  const [fromDate, setFromDate] = useState<Date>(new Date());
-  const [toDate, setToDate] = useState<Date>(new Date());
-  const [isFromDatePickerVisible, setFromDatePickerVisibility] = useState(false);
-  const [isToDatePickerVisible, setToDatePickerVisibility] = useState(false);
+  const [selectedInstruction, setSelectedInstruction] = useState<any>(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchGroups();
   }, []);
 
   useEffect(() => {
-    if (selectedGroupId !== null) {
-      fetchInstructions(selectedGroupId);
+    if (groups.length > 0) {
+      fetchAllInstructions();
     }
-  }, [selectedGroupId]);
+  }, [groups, selectedDate]);
 
   const fetchGroups = async () => {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('userToken');
-      if (!token) {
-        console.error('Token олдсонгүй');
-        return;
-      }
+      if (!token) return console.error('Token олдсонгүй');
 
       const response = await axios.get(`${BASE_URL}/api/employee/groups`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       setGroups(response.data);
-      if (response.data.length > 0) {
-        setSelectedGroupId(response.data[0].id);
-      }
     } catch (error) {
-      console.error('Бүлгүүдийг татахад алдаа:', error);
+      console.error('Бүлэг татахад алдаа:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchInstructions = async (groupId: number) => {
+  const fetchAllInstructions = async () => {
     try {
-      setLoading(true);
+      setRefreshing(true);
+      setInstructionsByGroup({});
       const token = await AsyncStorage.getItem('userToken');
-      if (!token) {
-        console.error('Token олдсонгүй');
-        return;
-      }
+      if (!token) return console.error('Token олдсонгүй');
 
-      const response = await axios.get(`${BASE_URL}/api/group/${groupId}/instructions`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      let tempInstructions: any = {};
 
-      const filteredData = response.data.filter((item: any) => {
-        if (!item) return false;
-        const itemStart = item.start_date ? new Date(item.start_date) : null;
-        const itemEnd = item.end_date ? new Date(item.end_date) : null;
-        if (!itemStart || !itemEnd) return false;
+      await Promise.all(
+        groups.map(async (group: any) => {
+          const res = await axios.get(`${BASE_URL}/api/group/${group.id}/instructions`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-        // Сонгосон интервалд багтаж байгааг шалгана
-        return itemStart <= toDate && itemEnd >= fromDate;
-      });
+          const filtered = res.data.filter((item: any) => {
+            if (!item) return false;
+            const start = item.start_date ? new Date(item.start_date) : null;
+            const end = item.end_date ? new Date(item.end_date) : null;
+            if (!start || !end) return false;
+            return selectedDate >= start && selectedDate <= end;
+          }).map((item: any) => ({
+            ...item,
+            group_id: group.id,
+          }));
 
-      setInstructions(filteredData);
+          tempInstructions[group.name] = filtered;
+        })
+      );
+
+      setInstructionsByGroup(tempInstructions);
     } catch (error) {
-      console.error('Зааварчилгааг татахад алдаа:', error);
+      console.error('Зааварчилгаа татахад алдаа:', error);
     } finally {
-      setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -102,96 +94,137 @@ const InstructionListScreen = () => {
     setModalVisible(false);
   };
 
+  const goToPreviousDay = () => {
+    setSelectedDate(prev => subDays(prev, 1));
+  };
+
+  const goToNextDay = () => {
+    setSelectedDate(prev => addDays(prev, 1));
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return format(date, 'yyyy.MM.dd');
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: '#F1F5FE' }}>
-      <FlatList
-        data={instructions}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.scrollContent}
-        ListHeaderComponent={
-          <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Бүлэг сонгох:</Text>
-            <TouchableOpacity style={styles.groupSelectButton} onPress={() => setGroupModalVisible(true)}>
-              <Text style={styles.groupSelectButtonText}>
-                {groups.find((g) => g.id === selectedGroupId)?.name || 'Бүлэг сонгоно уу'}
-              </Text>
-              <Ionicons name="chevron-down" size={22} color="#2F487F" />
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchAllInstructions} />}
+      >
+        <View style={styles.headerWrapper}>
+          <TouchableOpacity 
+            onPress={() => router.push('/Employee/Instruction/InstructionHistoryScreen')} 
+            style={styles.historyButton}
+          >
+            <Text style={styles.historyButtonText}>Зааварчилгаа хөтлөлт</Text>
+          </TouchableOpacity>
+
+          <View style={styles.header}>
+            <TouchableOpacity onPress={goToPreviousDay}>
+              <Ionicons name="chevron-back-outline" size={28} color="#2F487F" />
             </TouchableOpacity>
 
-            <View style={styles.dateRangeSelector}>
-              <TouchableOpacity onPress={() => setFromDatePickerVisibility(true)} style={styles.dateButton}>
-                <Text style={styles.dateText}>Эхлэх: {format(fromDate, 'yyyy.MM.dd')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setToDatePickerVisibility(true)} style={styles.dateButton}>
-                <Text style={styles.dateText}>Дуусах: {format(toDate, 'yyyy.MM.dd')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.searchButton}
-                onPress={() => {
-                  if (selectedGroupId) fetchInstructions(selectedGroupId);
-                }}
-              >
-                <Text style={styles.searchButtonText}>Шүүх</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.headerDate}>{format(selectedDate, 'yyyy.MM.dd')}</Text>
 
-            <Text style={styles.sectionTitle}>Зааварчилгаа</Text>
+            <TouchableOpacity onPress={goToNextDay}>
+              <Ionicons name="chevron-forward-outline" size={28} color="#2F487F" />
+            </TouchableOpacity>
           </View>
-        }
-        renderItem={({ item }) => (
-          item ? (
-            <View style={styles.instructionBlock}>
-              <View style={styles.topRow}>
-                <Text style={styles.subTitle}>Дугаар: {item.number}</Text>
-                <TouchableOpacity onPress={() => openDetail(item)}>
-                  <Text style={styles.viewAllText}>Дэлгэрэнгүй</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.statusRow}>
-                <View style={styles.statusWrapper}>
-                  <Ionicons name="checkbox-outline" size={18} color="#2F5AA8" />
-                  <Text style={styles.statusText}>{item.status === 'active' ? 'Идэвхтэй' : 'Архивлагдсан'}</Text>
-                </View>
-                <Text style={styles.instructionDate}>{item.start_date?.split('T')[0]}</Text>
-              </View>
-              <Text style={styles.instructionTitle}>{item.title}</Text>
-            </View>
-          ) : null
-        )}
-        ListEmptyComponent={loading ? <ActivityIndicator size="large" color="#2F487F" /> : <Text style={{ padding: 20 }}>Зааварчилгаа байхгүй</Text>}
-      />
-
-      {/* Group сонгох Modal */}
-      <Modal isVisible={isGroupModalVisible} onBackdropPress={() => setGroupModalVisible(false)}>
-        <View style={styles.groupModal}>
-          {groups.map((group) => (
-            <TouchableOpacity
-              key={group.id}
-              style={styles.groupItem}
-              onPress={() => {
-                setSelectedGroupId(group.id);
-                setGroupModalVisible(false);
-              }}
-            >
-              <Text style={styles.groupName}>{group.name}</Text>
-            </TouchableOpacity>
-          ))}
         </View>
-      </Modal>
 
-      {/* Instruction дэлгэрэнгүй Modal */}
-      <Modal isVisible={isModalVisible} onBackdropPress={closeDetail} style={styles.modal}>
+        {refreshing ? (
+          <ActivityIndicator size="large" color="#2F487F" style={{ marginTop: 50 }} />
+        ) : (
+          <>
+            {Object.values(instructionsByGroup).flat().length === 0 ? (
+              <View style={styles.noInstructionContainer}>
+                <Text style={styles.noInstructionText}>Зааварчилгаа олдсонгүй</Text>
+              </View>
+            ) : (
+              Object.keys(instructionsByGroup).map((groupName) => (
+                instructionsByGroup[groupName].length > 0 && (
+                  <View key={groupName} style={styles.groupSection}>
+                    <View style={styles.groupTitleWrapper}>
+                      <Text style={styles.groupTitle}>{groupName}</Text>
+                    </View>
+
+                  {instructionsByGroup[groupName].map((ins: any) => (
+  <TouchableOpacity
+    key={ins.id}
+    style={styles.instructionCard}
+    activeOpacity={0.8}
+    onPress={() => openDetail(ins)}
+  >
+    {/* Дээд талын мөр: Зааварчилгааны дугаар */}
+    <View style={styles.topRow}>
+      <Text style={styles.cardNumber}>Зааварчилгааны дугаар: {ins.number.toString().padStart(3, '0')}</Text>
+      <Text style={styles.viewAll}>View all</Text>
+    </View>
+
+    {/* Статус ба Огноо */}
+    <View style={styles.middleRow}>
+      <View style={styles.statusContainer}>
+        <Ionicons name="checkbox-outline" size={18} color="#2F487F" />
+        <Text style={styles.statusText}>Идэвхтэй</Text>
+      </View>
+      <Text style={styles.dateText}>{format(ins.start_date, 'yyyy.M.d')}</Text>
+    </View>
+
+    {/* Зааварчилгааны нэр */}
+    <Text style={styles.titleText}>{ins.title}</Text>
+  </TouchableOpacity>
+))}
+
+                  </View>
+                )
+              ))
+            )}
+          </>
+        )}
+      </ScrollView>
+
+      {/* Modal дэлгэрэнгүй */}
+      <Modal isVisible={isModalVisible} onBackdropPress={closeDetail}>
         <View style={styles.modalContent}>
           {selectedInstruction ? (
             <>
               <Text style={styles.modalTitle}>{selectedInstruction.title}</Text>
-              <View style={styles.infoRow}><Text style={styles.label}>Дугаар:</Text><Text style={styles.value}>{selectedInstruction.number}</Text></View>
-              <View style={styles.infoRow}><Text style={styles.label}>Эхлэх огноо:</Text><Text style={styles.value}>{selectedInstruction.start_date?.split('T')[0]}</Text></View>
-              <View style={styles.infoRow}><Text style={styles.label}>Дуусах огноо:</Text><Text style={styles.value}>{selectedInstruction.end_date?.split('T')[0]}</Text></View>
-              <View style={styles.infoRow}><Text style={styles.label}>Төлөв:</Text><Text style={styles.value}>{selectedInstruction.status === 'active' ? 'Идэвхтэй' : 'Архивлагдсан'}</Text></View>
+
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Дугаар:</Text>
+                <Text style={styles.value}>{selectedInstruction.number}</Text>
+              </View>
+
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Эхлэх огноо:</Text>
+                <Text style={styles.value}>{formatDate(selectedInstruction.start_date)}</Text>
+              </View>
+
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Дуусах огноо:</Text>
+                <Text style={styles.value}>{formatDate(selectedInstruction.end_date)}</Text>
+              </View>
+
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Төлөв:</Text>
+                <Text style={styles.value}>{selectedInstruction.status === 'active' ? 'Идэвхтэй' : 'Архивлагдсан'}</Text>
+              </View>
+
               <Text style={styles.sectionLabel}>Тайлбар:</Text>
               <Text style={styles.commentBox}>{selectedInstruction.description}</Text>
-              <TouchableOpacity style={styles.instructionButton} onPress={() => {closeDetail();router.push({pathname: '/Employee/Instruction/InstructionSlideScreen',params: { instructionId: selectedInstruction.id , groupId: selectedGroupId },});}}>
+
+              <TouchableOpacity
+                style={styles.instructionButton}
+                onPress={() => {
+                  closeDetail();
+                  router.push({
+                    pathname: '/Employee/Instruction/InstructionSlideScreen',
+                    params: { instructionId: selectedInstruction.id, groupId: selectedInstruction.group_id },
+                  });
+                }}
+              >
                 <Text style={styles.instructionButtonText}>Дэлгэрэнгүй үзэх</Text>
               </TouchableOpacity>
             </>
@@ -200,120 +233,103 @@ const InstructionListScreen = () => {
           )}
         </View>
       </Modal>
-
-      {/* Date Pickers */}
-      <DateTimePickerModal
-        isVisible={isFromDatePickerVisible}
-        mode="date"
-        onConfirm={(date) => {
-          setFromDate(date);
-          setFromDatePickerVisibility(false);
-        }}
-        onCancel={() => setFromDatePickerVisibility(false)}
-      />
-      <DateTimePickerModal
-        isVisible={isToDatePickerVisible}
-        mode="date"
-        onConfirm={(date) => {
-          setToDate(date);
-          setToDatePickerVisibility(false);
-        }}
-        onCancel={() => setToDatePickerVisibility(false)}
-      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollContent: { paddingBottom: 100 },
-  container: { padding: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: '400', marginBottom: 10, color: '#2F487F' },
-  groupSelectButton: { backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, justifyContent: 'space-between', marginBottom: 16 },
-  groupSelectButtonText: { fontSize: 16, color: '#2F487F' },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 6, borderBottomWidth: 1, borderColor: '#e0e0e0', marginBottom: 6 },
-  statusRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  statusWrapper: { flexDirection: 'row', alignItems: 'center' },
-  statusText: { marginLeft: 6, color: '#2F5AA8', fontWeight: '500' },
-  instructionDate: { color: '#C0392B', fontSize: 13 },
-  instructionTitle: { fontSize: 15, fontWeight: '500' },
-  subTitle: { fontSize: 14, fontWeight: '500' },
-  modal: { justifyContent: 'flex-end', margin: 0 },
-  modalContent: { backgroundColor: '#fff', padding: 20, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  modalTitle: { fontSize: 18, fontWeight: '600', marginBottom: 10, textAlign: 'center' },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  label: { fontSize: 14, fontWeight: '500', color: '#333' },
-  value: { fontSize: 14, color: '#555' },
-  sectionLabel: { fontSize: 16, fontWeight: '600', marginTop: 12, marginBottom: 6, color: '#2F487F' },
-  commentBox: { fontSize: 14, color: '#333', marginBottom: 12 },
-  instructionButton: { backgroundColor: '#2F487F', padding: 12, borderRadius: 8, alignItems: 'center' },
-  instructionButtonText: { color: '#fff', fontWeight: '600' },
-  dateRangeSelector: { 
-  flexDirection: 'column', 
-  alignItems: 'center', 
-  justifyContent: 'center', 
+  headerWrapper: { marginTop: 20, paddingHorizontal: 16 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginVertical: 12 },
+  headerDate: { fontSize: 20, fontWeight: '700', color: '#2F487F' },
+  historyButton: { backgroundColor: '#2F487F', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20, alignSelf: 'flex-end', marginTop: 12 },
+  historyButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+
+  noInstructionContainer: { marginTop: 50, alignItems: 'center' },
+  noInstructionText: { fontSize: 16, color: '#999999', fontWeight: '600' },
+
+  groupSection: { marginBottom: 24 },
+  groupTitleWrapper: { backgroundColor: '#fff', padding: 8, marginHorizontal: 46, marginBottom: 10, borderRadius: 8, alignItems: 'center', shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.05,
+  shadowRadius: 4,
+  elevation: 2,},
+  groupTitle: { fontSize: 17, fontWeight: '600', color: '#2F487F' },
+
+ instructionCard: {
+  backgroundColor: '#fff',
+  marginHorizontal: 16,
   marginBottom: 16,
-  gap: 10,
+  paddingVertical: 16,
+  paddingHorizontal: 20,
+  borderRadius: 16,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.05,
+  shadowRadius: 4,
+  elevation: 2,
 },
-dateButtonRow: {
+
+topRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 6,
+},
+
+cardNumber: {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#333',
+},
+
+viewAll: {
+  fontSize: 14,
+  fontWeight: '500',
+  color: '#2F487F',
+},
+
+middleRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 6,
+},
+
+statusContainer: {
   flexDirection: 'row',
   alignItems: 'center',
-  justifyContent: 'center',
-  gap: 12,
-},
-dateButton: { 
-  paddingVertical: 10, 
-  paddingHorizontal: 20, 
-  backgroundColor: '#fff', 
-  borderRadius: 30, 
-  borderColor: '#2F487F', 
-  borderWidth: 1,
-  elevation: 2,
-  shadowColor: '#000',
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  shadowOffset: { width: 0, height: 2 },
-},
-dateText: { fontSize: 16, color: '#2F487F', fontWeight: '600' },
-searchButton: { 
-  marginTop: 10,
-  paddingVertical: 12, 
-  paddingHorizontal: 32, 
-  backgroundColor: '#2F487F', 
-  borderRadius: 30,
-  elevation: 3,
-},
-searchButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-
-groupModal: { 
-  backgroundColor: '#fff', 
-  borderRadius: 12, 
-  padding: 20, 
-  elevation: 5,
-  shadowColor: '#000',
-  shadowOpacity: 0.1,
-  shadowRadius: 5,
-},
-groupItem: { 
-  paddingVertical: 14, 
-  borderBottomWidth: 1, 
-  borderBottomColor: '#eee',
-},
-groupName: { fontSize: 17, color: '#2F487F', fontWeight: '600' },
-
-instructionBlock: { 
-  backgroundColor: '#fff', 
-  padding: 16, 
-  borderRadius: 16, 
-  marginHorizontal: 10, 
-  marginBottom: 18,
-  elevation: 4,
-  shadowColor: '#000',
-  shadowOpacity: 0.1,
-  shadowRadius: 6,
+  gap: 4,
 },
 
-viewAllText: { color: '#2F487F', fontSize: 14, fontWeight: '700' },
+statusText: {
+  fontSize: 14,
+  fontWeight: '500',
+  color: '#2F487F',
+},
 
+dateText: {
+  fontSize: 14,
+  fontWeight: '500',
+  color: '#C0392B',
+},
+
+titleText: {
+  fontSize: 16,
+  fontWeight: '700',
+  color: '#000',
+  marginTop: 8,
+},
+
+  modalContent: { backgroundColor: '#fff', padding: 20, marginHorizontal: 10, borderRadius: 20, elevation: 10 },
+  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 16, textAlign: 'center', color: '#2F487F' },
+  instructionButton: { marginTop: 20, backgroundColor: '#2F487F', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 30, alignItems: 'center', elevation: 3 },
+  instructionButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 8 },
+  label: { fontSize: 14, fontWeight: '600', color: '#2F487F' },
+  value: { fontSize: 14, color: '#333' },
+  sectionLabel: { marginTop: 16, fontSize: 16, fontWeight: '700', color: '#2F487F', alignSelf: 'flex-start' },
+  commentBox: { fontSize: 14, color: '#555', marginTop: 6, textAlign: 'justify' },
 });
+
 
 export default InstructionListScreen;
