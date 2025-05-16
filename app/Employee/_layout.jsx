@@ -23,6 +23,10 @@ export default function Layout() {
     <Stack>
       <Stack.Screen name="Instruction" options={{ headerShown: false }} />
       <Stack.Screen name="Tab" options={{ headerShown: false }} />
+      <Stack.Screen name="Issue" options={{ headerShown: false }} />
+      <Stack.Screen name="Profile" options={{ headerShown: false }} />
+            <Stack.Screen name="Group" options={{ headerShown: false }} />
+
     </Stack>
   );
 }

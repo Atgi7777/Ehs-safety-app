@@ -240,7 +240,7 @@ const InstructionListScreen = () => {
 const styles = StyleSheet.create({
   headerWrapper: { marginTop: 20, paddingHorizontal: 16 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginVertical: 12 },
-  headerDate: { fontSize: 20, fontWeight: '700', color: '#2F487F' },
+  headerDate: { fontSize: 20, fontWeight: '600', color: '#2F487F' },
   historyButton: { backgroundColor: '#2F487F', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20, alignSelf: 'flex-end', marginTop: 12 },
   historyButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 
@@ -315,19 +315,19 @@ dateText: {
 
 titleText: {
   fontSize: 16,
-  fontWeight: '700',
+  fontWeight: '400',
   color: '#000',
   marginTop: 8,
 },
 
   modalContent: { backgroundColor: '#fff', padding: 20, marginHorizontal: 10, borderRadius: 20, elevation: 10 },
-  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 16, textAlign: 'center', color: '#2F487F' },
+  modalTitle: { fontSize: 20, fontWeight: '600', marginBottom: 16, textAlign: 'center', color: '#2F487F' },
   instructionButton: { marginTop: 20, backgroundColor: '#2F487F', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 30, alignItems: 'center', elevation: 3 },
-  instructionButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  instructionButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 8 },
-  label: { fontSize: 14, fontWeight: '600', color: '#2F487F' },
+  label: { fontSize: 14, fontWeight: '500', color: '#2F487F' },
   value: { fontSize: 14, color: '#333' },
-  sectionLabel: { marginTop: 16, fontSize: 16, fontWeight: '700', color: '#2F487F', alignSelf: 'flex-start' },
+  sectionLabel: { marginTop: 16, fontSize: 16, fontWeight: '500', color: '#2F487F', alignSelf: 'flex-start' },
   commentBox: { fontSize: 14, color: '#555', marginTop: 6, textAlign: 'justify' },
 });
 

@@ -1,165 +1,97 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  SectionList,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { BASE_URL } from '../../../src/config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const rawIssues = [
-  {
-    id: 1,
-    title: 'Цахилгааны залгуур халж байна',
-    description: 'Агуулахын өрөөний розетка асах үед халж байна.',
-    status: 'pending',
-    location: 'Агуулах - Өрөө 102',
-    created_at: '2025-05-06T08:30:00Z',
-  },
-  {
-    id: 2,
-    title: 'Цэвэрлэгээний хэрэгсэл дууссан',
-    description: 'Бие засах өрөөний ариун цэврийн хэрэгсэл байхгүй.',
-    status: 'resolved',
-    location: 'Оффисын 2-р давхар',
-    created_at: '2025-05-05T15:10:00Z',
-  },
-  {
-    id: 3,
-    title: 'Цонхны шил хагарсан',
-    description: 'Салхины улмаас цонхны шил цуурсан.',
-    status: 'pending',
-    location: 'Үйлдвэрийн хойд хаалга',
-    created_at: '2025-05-04T12:00:00Z',
-  },
-];
+export default function IssueListScreen() {
+  const [issues, setIssues] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const groupByDate = (issues: any[]) => {
-  const grouped: { [date: string]: any[] } = {};
+  useEffect(() => {
+    fetchAssignedIssues();
+  }, []);
 
-  issues.forEach((issue) => {
-    const date = new Date(issue.created_at).toLocaleDateString('mn-MN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-    if (!grouped[date]) grouped[date] = [];
-    grouped[date].push(issue);
-  });
+  const fetchAssignedIssues = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) return;
 
-  return Object.entries(grouped)
-    .sort((a, b) => new Date(b[1][0].created_at).getTime() - new Date(a[1][0].created_at).getTime())
-    .map(([title, data]) => ({ title, data }));
-};
+      const res = await fetch(`${BASE_URL}/api/issues/assigned-to-me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setIssues(data);
+    } catch (error) {
+      console.error('Issues татахад алдаа:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const IssueListScreen = () => {
-  const [sections] = useState(groupByDate(rawIssues));
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}`;
+  };
 
-  const renderItem = ({ item }: any) => (
-    <TouchableOpacity style={styles.card}>
-      <View style={styles.cardHeader}>
+  const renderItem = ({ item }: { item: any }) => (
+    <View style={styles.card}>
+      <View style={styles.headerRow}>
+        <Ionicons name="warning-outline" size={22} color="#E74C3C" />
         <Text style={styles.title}>{item.title}</Text>
-        <Text
-          style={[
-            styles.status,
-            item.status === 'resolved' ? styles.resolved : styles.pending,
-          ]}
-        >
-          {item.status === 'resolved' ? 'Шийдсэн' : 'Хүлээгдэж буй'}
-        </Text>
       </View>
+
       <Text style={styles.description}>{item.description}</Text>
-      <Text style={styles.meta}>Ажлын байр: {item.location}</Text>
-    </TouchableOpacity>
+
+      <View style={styles.bottomRow}>
+        <View>
+          <Text style={styles.reporterName}>{item.reporter?.name}</Text>
+          <Text style={styles.dateText}>Огноо: {formatDate(item.created_at)}</Text>
+        </View>
+
+        <Text style={styles.status}>{renderStatusText(item.status)}</Text>
+      </View>
+    </View>
   );
 
-  const renderSectionHeader = ({ section: { title } }: any) => (
-    <Text style={styles.sectionHeader}>{title}</Text>
-  );
+  const renderStatusText = (status: string) => {
+    switch (status) {
+      case 'pending': return 'Хүлээгдэж байна';
+      case 'in_progress': return 'Засварлаж байна';
+      case 'resolved': return 'Шийдэгдсэн';
+      default: return 'Тодорхойгүй';
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#2F487F" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Report</Text>
-      <SectionList
-        sections={sections}
+      <FlatList
+        data={issues}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
-        renderSectionHeader={renderSectionHeader}
-        contentContainerStyle={{ paddingBottom: 80 }}
-        stickySectionHeadersEnabled={false}
+        contentContainerStyle={{ padding: 16 }}
       />
     </View>
   );
-};
-
-export default IssueListScreen;
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-    padding: 16,
-  },
-  header: {
-    fontSize: 22,
-    fontWeight: '400',
-    marginBottom: 16,
-    color: '#1F2937',
-    textAlign: 'center',
-  },
-  sectionHeader: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 24,
-    marginBottom: 8,
-    color: '#374151',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  title: {
-    fontWeight: '400',
-    fontSize: 16,
-    color: '#111827',
-    flex: 1,
-    flexWrap: 'wrap',
-  },
-  status: {
-    fontWeight: '600',
-    fontSize: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  resolved: {
-    backgroundColor: '#D1FAE5',
-    color: '#065F46',
-  },
-  pending: {
-    backgroundColor: '#FEF3C7',
-    color: '#92400E',
-  },
-  description: {
-    marginTop: 4,
-    fontSize: 14,
-    color: '#374151',
-  },
-  meta: {
-    marginTop: 6,
-    fontSize: 12,
-    color: '#6B7280',
-  },
+  container: { flex: 1, backgroundColor: '#f5f7fa' },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 16, elevation: 2 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  title: { fontSize: 16, fontWeight: '700', color: '#2F487F', marginLeft: 8 },
+  description: { fontSize: 14, color: '#555', marginBottom: 12 },
+  bottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  reporterName: { fontSize: 14, fontWeight: '600', color: '#333' },
+  dateText: { fontSize: 12, color: '#999' },
+  status: { fontSize: 14, fontWeight: '600', color: '#2F487F' },
 });

@@ -14,7 +14,7 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Header from '../../components/EngineerComponents/Header';
-import MediaPickerModal, { MediaPickerModalRef } from '../../components/modals/ModalFile';
+// import MediaPickerModal, { MediaPickerModalRef } from '../../components/modals/ModalFile';
 import { BASE_URL } from '../../../src/config';
 
 
@@ -22,7 +22,7 @@ import { BASE_URL } from '../../../src/config';
 const AddInstructionDetail = () => {
   const router = useRouter();
   const { instructionId } = useLocalSearchParams(); // ирсэн дугаар
-  const mediaPickerRef = useRef<MediaPickerModalRef>(null);
+  // const mediaPickerRef = useRef<MediaPickerModalRef>(null);
 
   const [pages, setPages] = useState([{ id: 1, description: '', file: null as string | null }]);
   const [location, setLocation] = useState('');
@@ -80,20 +80,20 @@ const AddInstructionDetail = () => {
 
   const openMediaPicker = (index: number) => {
     setSelectedPageIndex(index);
-    mediaPickerRef.current?.open();
+    // mediaPickerRef.current?.open();
   };
 
   const handleSave = async () => {
-    try {
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i];
-        if (!page.file) continue;
+  try {
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
 
-        const formData = new FormData();
-        formData.append('description', page.description);
-        formData.append('page_order', String(i + 1));
-        formData.append('location', location);
+      const formData = new FormData();
+      formData.append('description', page.description);
+      formData.append('page_order', String(i + 1));
+      formData.append('location', location);
 
+      if (page.file) {
         const uri = page.file;
         const extension = uri.split('.').pop()?.toLowerCase();
 
@@ -110,23 +110,25 @@ const AddInstructionDetail = () => {
           name: `file_${Date.now()}.${extension}`,
           type: mimeType,
         } as any);
-
-        await fetch(`${BASE_URL}/api/safety-engineer/instruction/${instructionId}/pages`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          body: formData,
-        });
       }
 
-      Alert.alert('Амжилттай', 'Хуудаснууд хадгалагдлаа');
-      router.push('/Engineer/Tabs/ReportScreen');
-    } catch (err) {
-      console.error(err);
-      Alert.alert('Алдаа', 'Хадгалах үед алдаа гарлаа');
+      await fetch(`${BASE_URL}/api/safety-engineer/instruction/${instructionId}/pages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
     }
-  };
+
+    Alert.alert('Амжилттай', 'Хуудаснууд хадгалагдлаа');
+    router.push('/Engineer/Tabs/EngineerScreen');
+  } catch (err) {
+    console.error(err);
+    Alert.alert('Алдаа', 'Хадгалах үед алдаа гарлаа');
+  }
+};
+
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F1F5FE' }}>
@@ -136,7 +138,7 @@ const AddInstructionDetail = () => {
           <Ionicons name="arrow-back" size={24} color="#2F487F" />
           <Text style={styles.headerTitle}>Зааварчилгаа үүсгэх</Text>
         </View>
-
+ 
         {pages.map((page, index) => (
           <View key={page.id} style={styles.section}>
             <Text style={styles.label}>Тайлбар</Text>
@@ -191,7 +193,7 @@ const AddInstructionDetail = () => {
         </TouchableOpacity>
       </ScrollView>
 
-      <MediaPickerModal ref={mediaPickerRef} onPickImage={handlePickImage} />
+      {/* <MediaPickerModal ref={mediaPickerRef} onPickImage={handlePickImage} /> */}
     </View>
   );
 };

@@ -28,7 +28,7 @@ export default function GroupDetailScreen() {
           {/* Top group info */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Image source={require('@/assets/images/astralink.png')} style={styles.groupLogo} />
+              <Image source={require('@/assets/images/people.png')} style={styles.groupLogo} />
               <Text style={styles.groupName}>{groupName || 'Group Name'}</Text>
             </View>
             <TouchableOpacity onPress={() => router.back()}>

@@ -18,47 +18,49 @@ import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../../../../src/config';
 
 const GroupModals = () => {
-  const { groupId } = useLocalSearchParams();
+  const { groupId  , refresh} = useLocalSearchParams();
   const [group, setGroup] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchGroupDetail = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/group/${groupId}`);
-        setGroup(res.data);
-      } catch (err) {
-        console.error('Группийн мэдээлэл татахад алдаа:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (groupId) {
-      fetchGroupDetail();
+ useEffect(() => {
+  const fetchGroupDetail = async () => {
+    setLoading(true); // loading true болгох нь зөв
+    try {
+      const res = await axios.get(`${BASE_URL}/api/group/${groupId}`);
+      setGroup(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  }, [groupId]);
-
-  const handleDelete = async () => {
-    Alert.alert('Баталгаажуулах', 'Энэ бүлгийг устгах уу?', [
-      { text: 'Болих', style: 'cancel' },
-      {
-        text: 'Устгах',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await axios.delete(`${BASE_URL}/api/group/${groupId}`);
-            Alert.alert('Амжилттай', 'Бүлэг амжилттай устлаа.');
-            router.back();
-          } catch (err) {
-            console.error('Устгахад алдаа:', err);
-            Alert.alert('Алдаа', 'Устгаж чадсангүй.');
-          }
-        },
-      },
-    ]);
   };
+
+  if (groupId) {
+    fetchGroupDetail();
+  }
+}, [groupId, refresh]);
+
+ const handleDelete = async () => {
+  Alert.alert('Баталгаажуулах', 'Энэ бүлгийг устгах уу?', [
+    { text: 'Болих', style: 'cancel' },
+    {
+      text: 'Устгах',
+      style: 'destructive',
+      onPress: async () => {
+        try {
+          await axios.delete(`${BASE_URL}/api/group/${groupId}`);
+          Alert.alert('Амжилттай', 'Бүлэг амжилттай устлаа.');
+          router.push('/Engineer/Tabs/EngineerScreen'); // ✅ энд шууд буцахдаа refresh хийнэ
+        } catch (err) {
+          console.error('Устгахад алдаа:', err);
+          Alert.alert('Алдаа', 'Устгаж чадсангүй.');
+        }
+      },
+    },
+  ]);
+};
+
 
   if (loading) {
     return (
@@ -101,9 +103,12 @@ const GroupModals = () => {
         source={
           group.profile?.image
             ? { uri: `${BASE_URL}${group.profile.image}` ,  params: { groupId: groupId?.toString() }, }
-            : require('@/assets/images/add-group.png')
+            : require('@/assets/images/people.png')
         }
-        style={styles.groupImage}
+            style={[
+    styles.groupImage,
+    !group?.profile?.image && styles.defaultImage, // 🔥 Default зурган дээр нэмэлт стиль
+  ]}
       />
 <Text style={styles.groupName}>{group.name}</Text>
       
@@ -152,6 +157,11 @@ const styles = StyleSheet.create({
     minHeight: '100%',
    
   },
+
+   defaultImage: {
+  backgroundColor: '#f1f5f9',  // Default цайвар саарал фон
+padding: 20,
+},
   centered: {
     flex: 1,
     justifyContent: 'center',
@@ -171,11 +181,12 @@ const styles = StyleSheet.create({
   groupImage: {
     width: 140,
     height: 140,
-    borderRadius: 70,
+    borderRadius: 100,
     marginBottom: 18,
     borderWidth: 3,
     borderColor: '#fff',
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#f1f5f9',
+    // padding: 20,
   },
   groupName: {
     fontSize: 28,

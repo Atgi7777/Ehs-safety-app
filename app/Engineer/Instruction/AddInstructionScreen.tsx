@@ -109,7 +109,7 @@ const AddInstructionScreen = () => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Зааварчилгаа үүсгэх</Text>
         </View>
-
+ 
         {/* Title */}
         <View style={styles.inputSection}>
           <Text style={styles.label}>Гарчиг</Text>

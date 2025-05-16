@@ -1,4 +1,3 @@
-// EmployeeDetailModal.tsx
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
   View,
@@ -14,73 +13,79 @@ import { Modalize } from 'react-native-modalize';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import EmployeeInstructionModal, { EmployeeInstructionModalRef } from '@/app/components/modals/GroupDetailModals/EmployeeInstructionModal';
-import { BASE_URL } from '../../../../src/config'; 
+import { useRouter } from 'expo-router'; // ✅
 
+import { BASE_URL } from '../../../../src/config';
 
 export type EmployeeDetailModalRef = {
   open: (employeeId: number, groupId: number) => void;
 };
 
-const EmployeeDetailModal = forwardRef<EmployeeDetailModalRef>((_, ref) => {
-  const modalRef = useRef<Modalize>(null);
-  const [employee, setEmployee] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [groupId, setGroupId] = useState<number | null>(null);
+type EmployeeDetailModalProps = {
+  onRemoveSuccess?: () => void;
+};
 
-  const instructionModalRef = useRef<EmployeeInstructionModalRef>(null);
+const EmployeeDetailModal = forwardRef<EmployeeDetailModalRef, EmployeeDetailModalProps>(
+  ({ onRemoveSuccess }, ref) => {
+    const modalRef = useRef<Modalize>(null);
+    const [employee, setEmployee] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
+    const [groupId, setGroupId] = useState<number | null>(null);
 
-  useImperativeHandle(ref, () => ({
-    open: async (employeeId: number, groupId: number) => {
-      setLoading(true);
-      setGroupId(groupId);
-      modalRef.current?.open();
+    const router = useRouter(); // ✅ router ашиглана
+
+    useImperativeHandle(ref, () => ({
+      open: async (employeeId: number, groupId: number) => {
+        setLoading(true);
+        setGroupId(groupId);
+        modalRef.current?.open();
+
+        try {
+          const token = await AsyncStorage.getItem('userToken');
+          const res = await axios.get(`${BASE_URL}/api/group/employees/${employeeId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setEmployee(res.data);
+        } catch (err) {
+          console.error('❌ Ажилтны мэдээлэл татаж чадсангүй:', err);
+          setEmployee(null);
+        } finally {
+          setLoading(false);
+        }
+      },
+    }));
+
+    const openInstructionPage = () => {
+      if (employee) {
+        modalRef.current?.close();
+        router.push({
+          pathname: '/Employee/Instruction/EmployeeInstruction',
+          params: { employeeId: employee.id , employeeName: employee.name},
+        });
+      }
+    };
+
+    const handleRemove = async () => {
+      if (!employee?.id || !groupId) {
+        return Alert.alert('Алдаа', 'Ажилтан болон бүлгийн мэдээлэл бүрэн биш байна.');
+      }
 
       try {
         const token = await AsyncStorage.getItem('userToken');
-        const res = await axios.get(`${BASE_URL}/api/group/employees/${employeeId}`, {
+        await axios.delete(`${BASE_URL}/api/group/${groupId}/remove/${employee.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setEmployee(res.data);
-      } catch (err) {
-        console.error('❌ Ажилтны мэдээлэл татаж чадсангүй:', err );
-        
 
-        setEmployee(null);
-      } finally {
-        setLoading(false);
+        Alert.alert('Амжилттай', 'Ажилтан бүлгээс хасагдлаа.');
+        modalRef.current?.close();
+        onRemoveSuccess?.();
+      } catch (err: any) {
+        console.error('❌ Хасах алдаа:', err);
+        Alert.alert('Алдаа', err.response?.data?.message || 'Бүлгээс хасахад алдаа гарлаа.');
       }
-    },
-  }));
+    };
 
-  const openInstructionModal = () => {
-    if (employee) {
-      instructionModalRef.current?.open(employee);
-    }
-  };
-
-  const handleRemove = async () => {
-    if (!employee?.id || !groupId) {
-      return Alert.alert('Алдаа', 'Ажилтан болон бүлгийн мэдээлэл бүрэн биш байна.');
-    }
-
-    try {
-      const token = await AsyncStorage.getItem('userToken');
-     
-      await axios.delete(`${BASE_URL}/api/group/${groupId}/remove/${employee.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      Alert.alert('Амжилттай', 'Ажилтан бүлгээс хасагдлаа.');
-      modalRef.current?.close();
-    } catch (err: any) {
-      console.error('❌ Хасах алдаа:', err);
-      Alert.alert('Алдаа', err.response?.data?.message || 'Бүлгээс хасахад алдаа гарлаа.');
-    }
-  };
-
-  return (
-    <>
+    return (
       <Modalize ref={modalRef} snapPoint={800} modalHeight={800}>
         <View style={styles.modalContent}>
           <TouchableOpacity onPress={() => modalRef.current?.close()}>
@@ -131,8 +136,8 @@ const EmployeeDetailModal = forwardRef<EmployeeDetailModalRef>((_, ref) => {
                 <Text style={styles.label}>Хаяг:</Text>
                 <Text style={styles.value}>{employee.address || 'Тодорхойгүй'}</Text>
               </View>
-                {/* // зааварчилгаа хөтлөлтыг харуулдаг болгоноооо */}
-              <TouchableOpacity style={styles.instructionButton} onPress={openInstructionModal}>
+
+              <TouchableOpacity style={styles.instructionButton} onPress={openInstructionPage}>
                 <Text style={styles.instructionButtonText}>Зааварчилгаа хөтлөлт</Text>
               </TouchableOpacity>
 
@@ -145,11 +150,9 @@ const EmployeeDetailModal = forwardRef<EmployeeDetailModalRef>((_, ref) => {
           )}
         </View>
       </Modalize>
-
-      <EmployeeInstructionModal ref={instructionModalRef} />
-    </>
-  );
-});
+    );
+  }
+);
 
 export default EmployeeDetailModal;
 

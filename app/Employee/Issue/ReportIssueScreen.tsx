@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { BASE_URL } from '../../../src/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-
+ 
 const ReportIssueScreen = () => {
   const router = useRouter();
   const [title, setTitle] = useState('');
@@ -70,7 +70,7 @@ const ReportIssueScreen = () => {
       });
 
       const responseText = await res.text();
-      console.log('⚡ Server response:', responseText);
+      console.log('Server response:', responseText);
 
       if (res.ok) {
         Alert.alert('Амжилттай', 'Мэдэгдэл илгээгдлээ!');
@@ -84,7 +84,7 @@ const ReportIssueScreen = () => {
     }
   };
 
-  return (
+  return ( 
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Асуудал мэдэгдэх</Text>
 
@@ -129,8 +129,8 @@ const Input = ({ label, value, onChangeText, placeholder, multiline = false }: a
 );
 
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: '#F8FAFF' , paddingBottom: 120 },
-  title: { fontSize: 22, fontWeight: '500', color: '#2F487F', marginBottom: 20, textAlign: 'center' },
+  container: { padding: 20, backgroundColor: '#F8FAFF' , paddingBottom: 120 , paddingTop: 80},
+  title: { fontSize: 22, fontWeight: '600', color: '#2F487F', marginBottom: 20, textAlign: 'center' },
   inputBox: { marginBottom: 20 },
   label: { fontSize: 14, fontWeight: '600', color: '#2F487F', marginBottom: 8 },
   input: { backgroundColor: '#fff', borderRadius: 12, borderColor: '#E0E0E0', borderWidth: 1, padding: 12, fontSize: 16 },

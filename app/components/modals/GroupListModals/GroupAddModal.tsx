@@ -14,8 +14,10 @@ import { BASE_URL } from '../../../../src/config';
 export type GroupAddModalRef = {
   open: () => void;
 };
-
-const GroupAddModal = forwardRef<GroupAddModalRef>((props, ref) => {
+type GroupAddModalProps = {
+  onGroupCreated: () => void; // ✅ Бүлэг амжилттай үүссэн үед дуудна
+};
+const GroupAddModal = forwardRef<GroupAddModalRef, GroupAddModalProps>(({ onGroupCreated }, ref) => {
   const modalRef = useRef<Modalize>(null);
 
   const [groupName, setGroupName] = useState('');
@@ -53,49 +55,79 @@ const GroupAddModal = forwardRef<GroupAddModalRef>((props, ref) => {
     }
   };
 
-  const handleSaveGroup = async () => {
-    try {
-      const token = await AsyncStorage.getItem('userToken');
-      if (!token) {
-        Alert.alert('Алдаа', 'Токен олдсонгүй. Нэвтэрнэ үү.');
-        return;
-      }
+ const handleSaveGroup = async () => {
+  console.log('🚀 handleSaveGroup дуудлаа!');
 
-      const formData = new FormData();
-      formData.append('name', groupName);
-      formData.append('activity', activity);
-      formData.append('work_description', workDescription);
-      formData.append('work_detail', plannedTask);
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    console.log('🛡 Token:', token);
 
-      if (logoUri) {
-        const filename = logoUri.split('/').pop();
-        const fileType = filename?.split('.').pop();
-        formData.append('profile', {
-          uri: logoUri,
-          name: filename || 'profile.jpg',
-          type: `image/${fileType || 'jpeg'}`,
-        } as any);
-      }
-
-      const response = await axios.post(
-        '${BASE_URL}/api/safety-engineer/makeGroup',
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-
-      console.log('✅ Бүлэг амжилттай үүслээ:', response.data);
-      Alert.alert('Амжилттай', 'Бүлэг амжилттай үүслээ!');
-      modalRef.current?.close();
-    } catch (error) {
-      console.error('❌ Хадгалах алдаа:', error);
-      Alert.alert('Алдаа', 'Бүлэг үүсгэхэд алдаа гарлаа');
+    if (!token) {
+      Alert.alert('Алдаа', 'Токен олдсонгүй. Нэвтэрнэ үү.');
+      return;
     }
-  };
+
+    console.log('📦 Group Name:', groupName);
+    console.log('📦 Activity:', activity);
+    console.log('📦 Planned Task:', plannedTask);
+    console.log('📦 Work Description:', workDescription);
+    console.log('📦 Logo URI:', logoUri);
+
+    const formData = new FormData();
+    formData.append('name', groupName);
+    formData.append('activity', activity);
+    formData.append('work_description', workDescription);
+    formData.append('work_detail', plannedTask);
+
+    if (logoUri) {
+      const filename = logoUri.split('/').pop();
+      const fileType = filename?.split('.').pop();
+      formData.append('profile', {
+        uri: logoUri,
+        name: filename || 'profile.jpg',
+        type: `image/${fileType || 'jpeg'}`,
+      } as any);
+    }
+
+    console.log('🛰 Илгээж буй API URL:', `${BASE_URL}/api/safety-engineer/makeGroup`);
+    console.log('📤 FormData бэлэн!');
+
+    const response = await axios.post(
+      `${BASE_URL}/api/safety-engineer/makeGroup`, // ✅ Зөв бичсэн байгааг шалгав
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    console.log('✅ Бүлэг амжилттай үүслээ:', response.data);
+    Alert.alert('Амжилттай', 'Бүлэг амжилттай үүслээ!');
+    onGroupCreated(); // ✅ Refresh хийх callback дуудна
+
+    modalRef.current?.close();
+  } catch (error: any) {
+    console.error('❌ Хадгалах алдаа:', error);
+
+    if (error.response) {
+      // Серверээс ирсэн алдаа
+      console.log('📡 Алдаа хариу:', error.response.data);
+      console.log('📡 Алдаа статус код:', error.response.status);
+    } else if (error.request) {
+      // Request явсан боловч хариу ирээгүй
+      console.log('📭 Request илгээгдсэн боловч хариу ирсэнгүй');
+      console.log(error.request);
+    } else {
+      // Axios setup буруу эсвэл сүлжээний асуудал
+      console.log('⚡ Алдааны мессеж:', error.message);
+    }
+
+    Alert.alert('Алдаа', 'Бүлэг үүсгэхэд алдаа гарлаа');
+  }
+};
+
 
   return (
     <>

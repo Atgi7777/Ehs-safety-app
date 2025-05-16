@@ -1,17 +1,32 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import Header from '../../components/EmployeeComponents/Header'; 
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { useFonts } from 'expo-font';
+import Header from '../../components/EmployeeComponents/Header';
 import EmployeeIssueListScreen from '../../components/EmployeeComponents/EmployeeIssueListScreen';
+
 const ReportScreen = () => {
- 
+  const [fontsLoaded] = useFonts({
+    'SpaceMono-Bold': require('../../../assets/fonts/SpaceMono-Regular.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2F487F" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-     
       <Header />
-    
- <EmployeeIssueListScreen />
- 
+
+      {/* 🆕 Ажлын байрны осол, зөрчил гарчиг */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>Ажлын байрны осол, зөрчил</Text>
+      </View>
+
+      <EmployeeIssueListScreen />
     </View>
   );
 };
@@ -23,51 +38,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#EFF5FF',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  sectionHeader: {
     paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 10,
+    paddingTop: 10,
+    paddingBottom: 6,
     backgroundColor: '#EFF5FF',
-    justifyContent: 'space-between',
   },
-  backButton: {
-    width: 30,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  sectionHeaderText: {
+    fontSize: 22,
     color: '#2F487F',
-    position: 'absolute', // 🔥
-    left: 0,
-    right: 0,
     textAlign: 'center',
+    
   },
-  
-  scrollContent: {
-    paddingHorizontal: 16,
-  },
-  dateFilterContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  dateTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#333',
-  },
-  section: {
-    marginTop: 10,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 
-export default function GroupLayout() {
+export default function ProfileLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProfileEditScreen" />

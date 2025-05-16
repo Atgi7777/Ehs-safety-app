@@ -7,6 +7,8 @@ export default function InstructionLayout() {
       <Stack.Screen name="SignatureConfirmScreen" />
        <Stack.Screen name="InstructionHistoryScreen" />
        <Stack.Screen name="InstructionDetailScreen" />
+              <Stack.Screen name="EmployeeInstruction" />
+
       
     </Stack>
   );

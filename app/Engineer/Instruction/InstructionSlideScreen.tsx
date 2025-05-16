@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect , useRef} from 'react';
 import {
   View,
   Text,
@@ -13,44 +13,77 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import { Audio, Video, ResizeMode } from 'expo-av';
 import { BASE_URL } from '../../../src/config';
-
+ 
 const InstructionSlideScreen = () => {
   const router = useRouter();
   const { instructionId } = useLocalSearchParams();
   const [slides, setSlides] = useState<any[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
+  const videoRef = useRef<Video | null>(null); // 🔥 Video ref нэмэх
 
-  useEffect(() => {
-    const fetchSlides = async () => {
+
+useEffect(() => {
+  const fetchSlides = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/instruction/${instructionId}/slides`);
+      setSlides(res.data);
+    } catch (error) {
+      console.error('⚠️ Слайд татахад алдаа:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (instructionId) fetchSlides();
+}, [instructionId]);
+
+useEffect(() => {
+  return () => {
+    if (videoRef.current) {
+      videoRef.current.stopAsync().catch((e) => console.warn('Cleanup дээр видео зогсоох алдаа:', e));
+    }
+  };
+}, []);
+
+  const handleNext = async () => {
+  if (currentSlide < slides.length - 1) {
+    if (videoRef.current) {
       try {
-        const res = await axios.get(`${BASE_URL}/api/instruction/${instructionId}/slides`);
-        setSlides(res.data);
-      } catch (error) {
-        console.error('⚠️ Слайд татахад алдаа:', error);
-      } finally {
-        setLoading(false);
+        await videoRef.current.stopAsync(); // 🎯 өмнөх видеог зогсоох
+      } catch (e) {
+        console.warn('Видеог зогсоох үед алдаа:', e);
       }
-    };
-
-    if (instructionId) fetchSlides();
-  }, [instructionId]);
-
-  const handleNext = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(currentSlide + 1);
     }
-  };
+    setCurrentSlide(currentSlide + 1);
+  }
+};
 
-  const handlePrev = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
+const handlePrev = async () => {
+  if (currentSlide > 0) {
+    if (videoRef.current) {
+      try {
+        await videoRef.current.stopAsync(); // 🎯 өмнөх видеог зогсоох
+      } catch (e) {
+        console.warn('Видеог зогсоох үед алдаа:', e);
+      }
     }
-  };
+    setCurrentSlide(currentSlide - 1);
+  }
+};
 
-  const handleGoBackHome = () => {
-    router.push('/Engineer/Tabs/EngineerScreen');
-  };
+
+ const handleGoBackHome = async () => {
+  if (videoRef.current) {
+    try {
+      await videoRef.current.stopAsync(); // 🎯 Видеог зогсооно!
+    } catch (e) {
+      console.warn('Видеог зогсоох үед алдаа:', e);
+    }
+  }
+  router.push('/Engineer/Tabs/EngineerScreen');
+};
+
 
   if (loading) {
     return (
@@ -94,6 +127,8 @@ const InstructionSlideScreen = () => {
           />
         ) : slide.video_url ? (
           <Video
+            ref={(ref) => (videoRef.current = ref)}
+
             source={{ uri: `${BASE_URL}/${slide.video_url}` }}
             style={styles.image}
             useNativeControls

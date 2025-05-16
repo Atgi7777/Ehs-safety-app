@@ -114,16 +114,18 @@ export default function EditInstructionScreen() {
     }
   };
 
-  const pickVideo = async (index: number) => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-    });
-    if (!result.canceled) {
-      const updated = [...pages];
-      updated[index].video_url = result.assets[0].uri;
-      setPages(updated);
-    }
-  };
+ const pickVideo = async (index: number) => {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+  });
+
+  if (!result.canceled && result.assets?.length > 0) {
+    const updated = [...pages];
+    updated[index].video_url = result.assets[0].uri; // зөв file://... URI авна
+    setPages(updated);
+  }
+};
+
 
   const pickAudio = async (index: number) => {
     const result = await DocumentPicker.getDocumentAsync({ type: 'audio/*' });
@@ -141,62 +143,67 @@ export default function EditInstructionScreen() {
     await newSound.playAsync();
   };
 
-  const onSave = async () => {
-    const formData = new FormData();
+const onSave = async () => {
+  const formData = new FormData();
 
-    formData.append(
-      'data',
-      JSON.stringify({
-        title: instruction.title,
-        number: parseInt(instruction.number),
-        description: instruction.description,
-        start_date: instruction.start_date,
-        end_date: instruction.end_date,
-        pages: pages.map((p, i) => ({
-          description: p.description,
-          location: p.location,
-          page_order: i + 1,
-        })),
-      })
-    );
+  formData.append(
+    'data',
+    JSON.stringify({
+      title: instruction.title,
+      number: parseInt(instruction.number),
+      description: instruction.description,
+      start_date: instruction.start_date,
+      end_date: instruction.end_date,
+      pages: pages.map((p, i) => ({
+        description: p.description,
+        location: p.location,
+        page_order: i + 1,
+        image_url: p.image_url.startsWith('http') ? p.image_url.replace(BASE_URL + '/', '') : '', // 🛠️
+        video_url: p.video_url?.startsWith('http') ? p.video_url.replace(BASE_URL + '/', '') : '', // 🛠️
+        audio_url: p.audio_url?.startsWith('http') ? p.audio_url.replace(BASE_URL + '/', '') : '', // 🛠️
+      })),
+    })
+  );
 
-    pages.forEach((page, index) => {
-      if (page.image_url?.startsWith('file://')) {
-        formData.append(`image_url_${index}`, {
-          uri: page.image_url,
-          type: 'image/jpeg',
-          name: `image_${index}.jpg`,
-        } as any);
-      }
-
-      if (page.video_url?.startsWith('file://')) {
-        formData.append(`video_url_${index}`, {
-          uri: page.video_url,
-          type: 'video/mp4',
-          name: `video_${index}.mp4`,
-        } as any);
-      }
-
-      if (page.audio_url?.startsWith('file://')) {
-        formData.append(`audio_url_${index}`, {
-          uri: page.audio_url,
-          type: 'audio/mpeg',
-          name: `audio_${index}.mp3`,
-        } as any);
-      }
-    });
-
-    try {
-      await axios.put(`${BASE_URL}/api/instruction/${instructionId}/with-media`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      Alert.alert('Амжилттай', 'Шинэчлэгдлээ');
-      router.back();
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Алдаа', 'Хадгалах үед алдаа гарлаа');
+  pages.forEach((page, index) => {
+    if (page.image_url?.startsWith('file://')) {
+      formData.append(`image_url_${index}`, {
+        uri: page.image_url,
+        type: 'image/jpeg',
+        name: `image_${index}.jpg`,
+      } as any);
     }
-  };
+
+    if (page.video_url?.startsWith('file://')) {
+      formData.append(`video_url_${index}`, {
+        uri: page.video_url,
+        type: 'video/mp4',
+        name: `video_${index}.mp4`,
+      } as any);
+    }
+
+    if (page.audio_url?.startsWith('file://')) {
+      formData.append(`audio_url_${index}`, {
+        uri: page.audio_url,
+        type: 'audio/mpeg',
+        name: `audio_${index}.mp3`,
+      } as any);
+    }
+  });
+
+  try {
+    await axios.put(`${BASE_URL}/api/instruction/${instructionId}/with-media`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    Alert.alert('Амжилттай', 'Шинэчлэгдлээ');
+    router.back();
+  } catch (error) {
+    console.error(error);
+    Alert.alert('Алдаа', 'Хадгалах үед алдаа гарлаа');
+  }
+};
+
+
 
   const addPage = () => {
     setPages([
@@ -235,15 +242,18 @@ export default function EditInstructionScreen() {
           <>
             <Text style={styles.sectionTitle}>Үндсэн мэдээлэл</Text>
             {fieldKeys.map((key) => (
-              <TextInput
-                key={key}
-                style={styles.input}
-                placeholder={
-                  key === 'title' ? 'Гарчиг' : key === 'number' ? 'Дугаар' : 'Тайлбар'
-                }
-                value={instruction[key]}
-                onChangeText={(text) => setInstruction({ ...instruction, [key]: text })}
-              />
+             <TextInput
+  key={key}
+  style={styles.input}
+  placeholder={
+    key === 'title' ? 'Гарчиг' : key === 'number' ? 'Дугаар' : 'Тайлбар'
+  }
+  value={instruction[key]}
+  onChangeText={(text) => setInstruction({ ...instruction, [key]: text })}
+  multiline={true} 
+  textAlignVertical="top" 
+/>
+
             ))}
 
             <Text style={styles.sectionTitle}>Хугацаа</Text>
@@ -311,6 +321,8 @@ export default function EditInstructionScreen() {
                 updated[index].description = text;
                 setPages(updated);
               }}
+               multiline={true} 
+  textAlignVertical="top" 
             />
 
             <TouchableOpacity
@@ -397,7 +409,8 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1, borderColor: '#ccc', padding: 10,
     marginVertical: 8, borderRadius: 8, fontSize: 16, backgroundColor: '#fff',
-    marginHorizontal: 15,
+    marginHorizontal: 15, minHeight: 50, 
+  textAlignVertical: 'top',
   },
   sectionTitle: { fontSize: 18, fontWeight: '500', margin: 16, color: '#333' },
   row: { flexDirection: 'row', gap: 10, paddingHorizontal: 16 },
@@ -412,15 +425,15 @@ const styles = StyleSheet.create({
     borderRadius: 12, borderWidth: 1, borderColor: '#ddd',
   },
   pageHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  pageTitle: { fontWeight: '600', fontSize: 16 },
+  pageTitle: { fontWeight: '600', fontSize: 16 ,  flexShrink: 1 },
   locationButton: {
     flexDirection: 'row', alignItems: 'center',
     padding: 10, backgroundColor: '#eef3ff',
     borderRadius: 8, marginBottom: 8,
   },
   locationText: { marginLeft: 6, color: '#004aad', fontWeight: '500' },
-  locationDisplay: { color: '#007b2f', marginTop: 4 },
-  locationPlaceholder: { color: '#999', fontStyle: 'italic', marginTop: 4 },
+  locationDisplay: { color: '#007b2f', marginTop: 4 ,  flexShrink: 1 },
+  locationPlaceholder: { color: '#999', fontStyle: 'italic', marginTop: 4 ,  flexShrink: 1 },
   mediaButtonRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10 },
   mediaButton: {
     flexBasis: '30%', padding: 12, alignItems: 'center',

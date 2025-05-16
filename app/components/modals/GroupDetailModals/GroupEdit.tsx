@@ -3,24 +3,25 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
+  TextInput, 
   TouchableOpacity,
   ScrollView,
   Alert,
-  Platform,
   Image,
   ActivityIndicator,
+  Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
-
-
-
+import { Picker } from '@react-native-picker/picker';
 import { BASE_URL } from '../../../../src/config';
 
 const EditGroup = () => {
-  const { groupId } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const groupId = params?.groupId;
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
@@ -33,9 +34,15 @@ const EditGroup = () => {
   const [status, setStatus] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
 
+  const [nameHeight, setNameHeight] = useState(48);
+  const [activityHeight, setActivityHeight] = useState(48);
+  const [workDescriptionHeight, setWorkDescriptionHeight] = useState(100);
+  const [workDetailHeight, setWorkDetailHeight] = useState(100);
+
   useEffect(() => {
     const fetchGroup = async () => {
       try {
+        if (!groupId) return;
         const res = await fetch(`${BASE_URL}/api/group/${groupId}`);
         const data = await res.json();
         setGroup(data);
@@ -52,33 +59,27 @@ const EditGroup = () => {
       }
     };
 
-    if (groupId) fetchGroup();
+    fetchGroup();
   }, [groupId]);
 
   const pickImage = async () => {
-    // 1. Permission асуух
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Анхаар', 'Зураг сонгохын тулд permission шаардлагатай!');
+      Alert.alert('Анхаар', 'Зураг сонгохын тулд зөвшөөрөл хэрэгтэй!');
       return;
     }
-  
     try {
-      // 2. Зураг сонгох
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.7,
       });
-  
-      // 3. Цуцлагдсан эсэх болон зураг байгаа эсэх шалгах
+
       if (result.canceled || !result.assets || result.assets.length === 0) {
         console.log('Зураг сонгоогүй');
         return;
       }
-  
-      // 4. Зураг авах
       const selected = result.assets[0];
       setImageUri(selected.uri);
     } catch (err) {
@@ -86,7 +87,6 @@ const EditGroup = () => {
       Alert.alert('Алдаа', 'Зураг сонгоход алдаа гарлаа.');
     }
   };
-  
 
   const handleSave = async () => {
     const formData = new FormData();
@@ -101,10 +101,11 @@ const EditGroup = () => {
         uri: imageUri,
         type: 'image/jpeg',
         name: 'group.jpg',
-      } as any); // React Native File format
+      } as any);
     }
 
     try {
+      if (!groupId) return;
       const res = await fetch(`${BASE_URL}/api/group/${groupId}`, {
         method: 'PUT',
         headers: {
@@ -116,14 +117,32 @@ const EditGroup = () => {
       const result = await res.json();
 
       if (res.ok) {
-        Alert.alert('Амжилттай', 'Мэдээлэл шинэчлэгдлээ.');
-        router.back();
-      } else {
-        Alert.alert('Алдаа', result.message || 'Шинэчлэхэд алдаа гарлаа.');
-      }
+  Toast.show({
+    type: 'success',
+    text1: 'Амжилттай',
+    text2: 'Мэдээлэл амжилттай шинэчлэгдлээ 🎉',
+  });
+
+  router.push({
+    pathname: '/components/modals/GroupDetailModals/GroupModals',
+    params: { groupId: groupId.toString(), refresh: Date.now().toString() }, // refresh дамжуулж өгөв
+  });
+
+} else {
+  Toast.show({
+    type: 'error',
+    text1: 'Алдаа',
+    text2: result.message || 'Шинэчлэхэд алдаа гарлаа',
+  });
+}
+
     } catch (err) {
       console.error('Шинэчлэхэд алдаа:', err);
-      Alert.alert('Алдаа', 'Сүлжээний алдаа эсвэл сервер ажиллахгүй байна.');
+      Toast.show({
+        type: 'error',
+        text1: 'Алдаа',
+        text2: 'Сүлжээний алдаа эсвэл сервер ажиллахгүй байна',
+      });
     }
   };
 
@@ -137,59 +156,96 @@ const EditGroup = () => {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Back Icon */}
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color="#2F487F" />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={28} color="#2F487F" />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity onPress={pickImage}>
+          <Image
+            source={
+              imageUri
+                ? { uri: imageUri }
+                : group?.profile?.image
+                ? { uri: `${BASE_URL}${group.profile.image}` }
+                : require('@/assets/images/people.png')
+            }
+           style={[
+      styles.groupImage,
+      (!imageUri && !group?.profile?.image) && styles.defaultImage, // 🔥 Зөвхөн default зурган дээр нэмэлт стиль
+    ]}
+    />
+          <Text style={styles.changePhotoText}>Зураг солих</Text>
         </TouchableOpacity>
-      </View>
 
-      {/* Group Image + Change */}
-      <TouchableOpacity onPress={pickImage}>
-        <Image
-          source={
-            imageUri
-              ? { uri: imageUri }
-              : group?.profile?.image
-              ? { uri: `${BASE_URL}${group.profile.image}` }
-              : require('@/assets/images/add-group.png')
+        <Text style={styles.label}>Нэр</Text>
+        <TextInput
+          style={[styles.input, { height: nameHeight }]}
+          value={name}
+          onChangeText={setName}
+          multiline
+          onContentSizeChange={(e) =>
+            setNameHeight(Math.max(48, e.nativeEvent.contentSize.height))
           }
-          style={styles.groupImage}
         />
-        <Text style={styles.changePhotoText}>Зураг солих</Text>
-      </TouchableOpacity>
 
-      
+        <Text style={styles.label}>Ажлын чиглэл</Text>
+        <TextInput
+          style={[styles.input, { height: activityHeight }]}
+          value={activity}
+          onChangeText={setActivity}
+          multiline
+          onContentSizeChange={(e) =>
+            setActivityHeight(Math.max(48, e.nativeEvent.contentSize.height))
+          }
+        />
 
-      <Text style={styles.label}>Нэр</Text>
-      <TextInput style={styles.input} value={name} onChangeText={setName} />
+        <Text style={styles.label}>Ажлын товч тайлбар</Text>
+        <TextInput
+          style={[styles.input, { minHeight: 100, maxHeight: 300, height: workDescriptionHeight, textAlignVertical: 'top' }]}
+          value={workDescription}
+          onChangeText={setWorkDescription}
+          multiline
+          onContentSizeChange={(e) =>
+            setWorkDescriptionHeight(Math.max(100, Math.min(300, e.nativeEvent.contentSize.height)))
+          }
+        />
 
-      <Text style={styles.label}>Ажлын чиглэл</Text>
-      <TextInput style={styles.input} value={activity} onChangeText={setActivity} />
+        <Text style={styles.label}>Ажлын дэлгэрэнгүй</Text>
+        <TextInput
+          style={[styles.input, { minHeight: 100, maxHeight: 300, height: workDetailHeight, textAlignVertical: 'top' }]}
+          value={workDetail}
+          onChangeText={setWorkDetail}
+          multiline
+          onContentSizeChange={(e) =>
+            setWorkDetailHeight(Math.max(100, Math.min(300, e.nativeEvent.contentSize.height)))
+          }
+        />
 
-      <Text style={styles.label}>Ажлын товч тайлбар</Text>
-      <TextInput
-        style={styles.input}
-        value={workDescription}
-        onChangeText={setWorkDescription}
-      />
+        <Text style={styles.label}>Статус</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={status}
+            onValueChange={(itemValue) => setStatus(itemValue)}
+            style={styles.pickerStyle}
+            dropdownIconColor="#374151"
+          >
+            <Picker.Item label="Active" value="active" color="#111827" />
+            <Picker.Item label="Inactive" value="inactive" color="#111827" />
+          </Picker>
+        </View>
 
-      <Text style={styles.label}>Ажлын дэлгэрэнгүй</Text>
-      <TextInput
-        style={[styles.input, { height: 100 }]}
-        multiline
-        value={workDetail}
-        onChangeText={setWorkDetail}
-      />
-
-      <Text style={styles.label}>Статус</Text>
-      <TextInput style={styles.input} value={status} onChangeText={setStatus} />
-
-      <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-        <Text style={styles.saveBtnText}>Хадгалах</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+          <Text style={styles.saveBtnText}>Хадгалах</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -207,6 +263,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  defaultImage: {
+  backgroundColor: '#f1f5f9',  // Default цайвар саарал фон
+padding: 20 , // цайвар саарал хүрээ
+},
+
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
@@ -219,21 +280,15 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 8,
     borderWidth: 2,
-    borderColor: '#ccc',
-    backgroundColor: '#E5E7EB',
+    borderColor: 'white',
+    backgroundColor: '#f1f5f9',
+    
   },
   changePhotoText: {
     textAlign: 'center',
     color: '#2563EB',
     fontWeight: '500',
     marginBottom: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '400',
-    marginBottom: 24,
-    color: '#1F2937',
-    textAlign: 'center',
   },
   label: {
     fontSize: 14,
@@ -249,6 +304,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#D1D5DB',
+  },
+  pickerContainer: {
+    borderRadius: 10,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    height: 50,
+  },
+  pickerStyle: {
+    width: '100%',
+    // color: '#111827',
+    fontSize: 12,
+    padding: 12,
   },
   saveBtn: {
     backgroundColor: '#2F487F',

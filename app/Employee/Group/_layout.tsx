@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 
-export default function InstructionLayout() {
+export default function GroupLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="GroupDetailScreen" />
