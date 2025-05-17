@@ -16,7 +16,7 @@ const ReportScreen = () => {
       </View>
     );
   }
-
+ 
   return (
     <View style={styles.container}>
       <Header />
@@ -45,9 +45,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#EFF5FF',
   },
   sectionHeaderText: {
-    fontSize: 22,
+    fontSize: 20,
     color: '#2F487F',
     textAlign: 'center',
+    fontWeight: 500,
     
   },
   loadingContainer: {

@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 
+import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../../../src/config';
 
 const ProfileEditScreen = () => {
@@ -129,6 +130,14 @@ const ProfileEditScreen = () => {
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
     >
+      {/* Custom Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={30} color="#2F487F" />
+        </TouchableOpacity>
+      
+      </View>
+
       <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
         <Image
           source={
@@ -156,15 +165,14 @@ const ProfileEditScreen = () => {
       <Text style={styles.label}>Хүйс</Text>
       <View style={styles.pickerContainer}>
         <Picker
-  selectedValue={form.gender}
-  onValueChange={(value) => setForm({ ...form, gender: value })}
->
-  <Picker.Item label="Сонгоно уу" value="" color="#999" />
-  <Picker.Item label="Эрэгтэй" value="Эрэгтэй" color="#000" />
-  <Picker.Item label="Эмэгтэй" value="Эмэгтэй" color="#000" />
-  <Picker.Item label="Бусад" value="Бусад" color="#000"  />
-</Picker>
-
+          selectedValue={form.gender}
+          onValueChange={(value) => setForm({ ...form, gender: value })}
+        >
+          <Picker.Item label="Сонгоно уу" value="" color="#999" />
+          <Picker.Item label="Эрэгтэй" value="Эрэгтэй" color="#000" />
+          <Picker.Item label="Эмэгтэй" value="Эмэгтэй" color="#000" />
+          <Picker.Item label="Бусад" value="Бусад" color="#000"  />
+        </Picker>
       </View>
 
       <Text style={styles.label}>Нас</Text>
@@ -187,6 +195,21 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 90,
     backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+    marginTop: Platform.OS === 'ios' ? 30 : 5,
+  },
+  backBtn: {
+    padding: 4,
+    marginRight: 10,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2F487F',
   },
   label: {
     marginTop: 12,

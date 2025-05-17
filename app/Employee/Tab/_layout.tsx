@@ -16,7 +16,6 @@ const icons: { [key: string]: keyof typeof Ionicons.glyphMap } = {
 export default function EmployeeTabLayout() {
   return (
       <>
-          <StatusBar barStyle="dark-content" backgroundColor="white" />
     
     <Tabs
       screenOptions={({ route }) => ({
@@ -58,6 +57,8 @@ export default function EmployeeTabLayout() {
         },
       })}
     >
+            <StatusBar barStyle="dark-content" backgroundColor="white" />
+
       <Tabs.Screen name="EmployeeScreen" />
       <Tabs.Screen name="ReportScreen" />
       <Tabs.Screen name="SafetyScreen" />

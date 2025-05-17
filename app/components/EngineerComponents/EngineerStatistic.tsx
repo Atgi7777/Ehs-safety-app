@@ -16,7 +16,7 @@ type StatisticsProps = {
 
 const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) => {
   const [fontsLoaded] = useFonts({
-    'AlumniSans-Bold': require('../../../assets/fonts/AlumniSans-Regular.ttf'),
+    'AlumniSans-Bold': require('../../../assets/fonts/AlumniSans-Regular.ttf'), // Font-ийн зөв нэр!
   });
 
   const router = useRouter();
@@ -31,7 +31,8 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
 
   return (
     <View style={styles.statsContainer}>
-      <View style={styles.statItem}>
+      {/* Сургалт */}
+      <TouchableOpacity style={styles.statItem} onPress={() => router.push('/Engineer/Tabs/InstructionScreen')}>
         <View style={styles.topRightIcon}>
           <Ionicons name="chevron-forward-outline" size={30} color="#B0B0B0" />
         </View>
@@ -43,8 +44,9 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
           <Text style={styles.statNumber}>{trainingCount}</Text>
         </View>
         <Text style={styles.statLabel}>Сургалт</Text>
-      </View>
+      </TouchableOpacity>
 
+      {/* Асуудал */}
       <TouchableOpacity style={styles.statItem} onPress={() => router.push('/Engineer/Tabs/ReportScreen')}>
         <View style={styles.topRightIcon}>
           <Ionicons name="chevron-forward-outline" size={30} color="#B0B0B0" />
@@ -61,7 +63,6 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   statsContainer: {
@@ -93,6 +94,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
+    marginBottom: 10,
   },
   statNumber: {
     fontSize: width * 0.08,
@@ -106,7 +108,7 @@ const styles = StyleSheet.create({
   },
   topRightIcon: {
     position: 'absolute',
-    top: 35,
+    top: 45, 
     right: 10,
   },
 });

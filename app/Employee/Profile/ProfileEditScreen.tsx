@@ -112,6 +112,14 @@ export default function ProfileEditScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      {/* Буцах товчтой header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={30} color="#2F487F" />
+        </TouchableOpacity>
+       
+      </View>
+      
       <TouchableOpacity onPress={pickImage} style={styles.avatarContainer}>
         <Image
           source={avatarUri ? { uri: avatarUri } : require('@/assets/images/user-avatar.png')}
@@ -164,6 +172,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    
+    marginTop: Platform.OS === 'ios' ? 24 : 4,
+  },
+  backBtn: {
+    padding: 4,
+    marginRight: 10,
+    marginTop: 10
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2F487F',
   },
   avatarContainer: {
     alignItems: 'center',

@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { BASE_URL } from '../../../src/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
- 
+  
 const ReportIssueScreen = () => {
   const router = useRouter();
   const [title, setTitle] = useState('');

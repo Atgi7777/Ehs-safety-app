@@ -1,33 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, Image, ActivityIndicator, TouchableOpacity, Dimensions
 } from 'react-native';
-import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFonts } from 'expo-font';
+
+import { BASE_URL } from '../../../src/config';
 
 const { width } = Dimensions.get('window');
-const isSmallDevice = width < 360;
 
+// --- Statistics component ---
 type StatisticsProps = {
   trainingCount: number;
   inquiryCount: number;
 };
 
 const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) => {
-  const [fontsLoaded] = useFonts({
-    'AlumniSans-Bold': require('../../../assets/fonts/AlumniSans-Regular.ttf'),
-  });
-
   const router = useRouter();
-
-  if (!fontsLoaded) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
 
   return (
     <View style={styles.statsContainer}>
@@ -40,7 +31,7 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
             source={require('../../../assets/images/graduation-cap.png')}
             style={styles.logo}
           />
-          <Text style={styles.statNumber}>{trainingCount}</Text>
+          <Text style={styles.statNumber}>{inquiryCount}</Text>
         </View>
         <Text style={styles.statLabel}>Сургалт</Text>
       </View>
@@ -54,7 +45,7 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
             source={require('../../../assets/images/info.png')}
             style={styles.logo}
           />
-          <Text style={styles.statNumber}>{inquiryCount}</Text>
+          <Text style={styles.statNumber}>{trainingCount}</Text>
         </View>
         <Text style={styles.statLabel}>Асуудал</Text>
       </TouchableOpacity>
@@ -62,6 +53,46 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
   );
 };
 
+// --- Container хэсэг, font болон inquiryCount-ыг API-гаас татаж дамжуулна ---
+const StatisticsContainer: React.FC<{ employeeId: number; trainingCount: number }> = ({ employeeId, trainingCount }) => {
+  const [inquiryCount, setInquiryCount] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // FONT LOADING:
+  const [fontsLoaded] = useFonts({
+    'AlumniSans-Regular': require('../../../assets/fonts/AlumniSans-Regular.ttf')  });
+
+  useEffect(() => {
+    fetchIssueCount();
+  }, []);
+
+  const fetchIssueCount = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const res = await fetch(`${BASE_URL}/api/issues/count/${employeeId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setInquiryCount(data.count || 0);
+    } catch (e) {
+      setInquiryCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading || !fontsLoaded) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  return (
+    <Statistics trainingCount={trainingCount} inquiryCount={inquiryCount} />
+  );
+};
 
 const styles = StyleSheet.create({
   statsContainer: {
@@ -96,12 +127,12 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontSize: width * 0.08,
-    fontFamily: 'AlumniSans-Bold',
+    fontFamily: 'AlumniSans-Regular',
     color: '#000000',
   },
   statLabel: {
     fontSize: width * 0.07,
-    fontFamily: 'AlumniSans-Bold',
+    fontFamily: 'AlumniSans-Regular',
     color: '#000000',
   },
   topRightIcon: {
@@ -111,4 +142,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Statistics;
+export default StatisticsContainer;
+
+// Ашиглахдаа:
+// <StatisticsContainer employeeId={123} trainingCount={5} />
