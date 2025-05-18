@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, Image, ActivityIndicator, TouchableOpacity, Dimensions
+  View, Text, StyleSheet, Image, ActivityIndicator, TouchableOpacity, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -11,18 +11,20 @@ import { BASE_URL } from '../../../src/config';
 
 const { width } = Dimensions.get('window');
 
-// --- Statistics component ---
 type StatisticsProps = {
   trainingCount: number;
   inquiryCount: number;
 };
-
 const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) => {
   const router = useRouter();
-
   return (
     <View style={styles.statsContainer}>
-      <View style={styles.statItem}>
+      {/* Сургалт */}
+      <TouchableOpacity
+        style={styles.statItem}
+        onPress={() => router.push('/Employee/Training/UpcomingTrainings')}
+        activeOpacity={0.8}
+      >
         <View style={styles.topRightIcon}>
           <Ionicons name="chevron-forward-outline" size={30} color="#B0B0B0" />
         </View>
@@ -31,12 +33,16 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
             source={require('../../../assets/images/graduation-cap.png')}
             style={styles.logo}
           />
-          <Text style={styles.statNumber}>{inquiryCount}</Text>
+          <Text style={styles.statNumber}>{trainingCount}</Text>
         </View>
         <Text style={styles.statLabel}>Сургалт</Text>
-      </View>
-
-      <TouchableOpacity style={styles.statItem} onPress={() => router.push('/Employee/Tab/ReportScreen')}>
+      </TouchableOpacity>
+      {/* Асуудал */}
+      <TouchableOpacity
+        style={styles.statItem}
+        onPress={() => router.push('/Employee/Tab/ReportScreen')}
+        activeOpacity={0.8}
+      >
         <View style={styles.topRightIcon}>
           <Ionicons name="chevron-forward-outline" size={30} color="#B0B0B0" />
         </View>
@@ -45,7 +51,7 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
             source={require('../../../assets/images/info.png')}
             style={styles.logo}
           />
-          <Text style={styles.statNumber}>{trainingCount}</Text>
+          <Text style={styles.statNumber}>{inquiryCount}</Text>
         </View>
         <Text style={styles.statLabel}>Асуудал</Text>
       </TouchableOpacity>
@@ -53,28 +59,38 @@ const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) 
   );
 };
 
-// --- Container хэсэг, font болон inquiryCount-ыг API-гаас татаж дамжуулна ---
-const StatisticsContainer: React.FC<{ employeeId: number; trainingCount: number }> = ({ employeeId, trainingCount }) => {
+const StatisticsContainer: React.FC<{ id: number }> = ({ id }) => {
+  const [trainingCount, setTrainingCount] = useState<number>(0);
   const [inquiryCount, setInquiryCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // FONT LOADING:
   const [fontsLoaded] = useFonts({
-    'AlumniSans-Regular': require('../../../assets/fonts/AlumniSans-Regular.ttf')  });
+    'AlumniSans-Regular': require('../../../assets/fonts/AlumniSans-Regular.ttf'),
+  });
 
   useEffect(() => {
-    fetchIssueCount();
-  }, []);
+    fetchStats();
+  }, [id]);
 
-  const fetchIssueCount = async () => {
+  const fetchStats = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const res = await fetch(`${BASE_URL}/api/issues/count/${employeeId}`, {
+      // 1. Сургалтын тоо
+      const res1 = await fetch(`${BASE_URL}/api/safety-trainings/count/org-by-employee/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
-      setInquiryCount(data.count || 0);
+      const data1 = await res1.json();
+      setTrainingCount(data1.count || 0);
+
+      // 2. Асуудлын тоо
+      const res2 = await fetch(`${BASE_URL}/api/count/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data2 = await res2.json();
+      setInquiryCount(data2.count || 0);
+
     } catch (e) {
+      setTrainingCount(0);
       setInquiryCount(0);
     } finally {
       setLoading(false);
@@ -143,6 +159,3 @@ const styles = StyleSheet.create({
 });
 
 export default StatisticsContainer;
-
-// Ашиглахдаа:
-// <StatisticsContainer employeeId={123} trainingCount={5} />

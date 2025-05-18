@@ -113,7 +113,7 @@ const changeIssueStatus = async (id: number, newStatus: string) => {
           </View>
 
           {/* Status Dropdown */}
-          <View style={{ width: 160 }}>
+          <View style={{ width: 150 }}>
             <DropDownPicker
               open={isDropdownOpen}
               value={item.status}

@@ -5,45 +5,67 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { BASE_URL } from '../../../src/config';
-import Header from '../../components/EmployeeComponents/Header';
-
 
 const ProfileScreen = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+  const [stats, setStats] = useState<{ instructionsCount: number, trainingCount: number }>({
+    instructionsCount: 0,
+    trainingCount: 0, 
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
 
-useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-const token = await AsyncStorage.getItem('userToken'); // ✅ ижил нэртэй болгоно
-      if (!token) {
-        Alert.alert('Алдаа', 'Токен олдсонгүй. Та дахин нэвтэрнэ үү.');
+  // Профайл татах
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (!token) {
+          Alert.alert('Алдаа', 'Токен олдсонгүй. Та дахин нэвтэрнэ үү.');
+          router.replace('/LoginScreen');
+          return;
+        }
+        const res = await axios.get(`${BASE_URL}/api/employee/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProfile(res.data);
+      } catch (err: any) {
+        console.error('Профайл татаж чадсангүй:', err);
+        Alert.alert(
+          'Алдаа',
+          err?.response?.status === 403
+            ? 'Нэвтрэх эрх дууссан байна. Дахин нэвтэрнэ үү.'
+            : 'Мэдээлэл татаж чадсангүй'
+        );
         router.replace('/LoginScreen');
-        return;
+      } finally {
+        setLoading(false);
       }
+    };
+    fetchProfile();
+  }, []);
 
-      const res = await axios.get(`${BASE_URL}/api/employee/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProfile(res.data);
-    } catch (err: any) {
-      console.error('Профайл татаж чадсангүй:', err);
-      Alert.alert(
-        'Алдаа',
-        err?.response?.status === 403
-          ? 'Нэвтрэх эрх дууссан байна. Дахин нэвтэрнэ үү.'
-          : 'Мэдээлэл татаж чадсангүй'
-      );
-      router.replace('/LoginScreen');
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchProfile();
-}, []);
+  // Заавар, сургалтын тоо татах
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (!token) return;
+        const res = await axios.get(`${BASE_URL}/api/employee/me-stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setStats(res.data);
+      } catch (err) {
+        // optional: handle error
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
-
+  // Гарах
   const handleLogout = async () => {
     Alert.alert('Системээс гарах', 'Та гарахдаа итгэлтэй байна уу?', [
       { text: 'Цуцлах', style: 'cancel' },
@@ -51,13 +73,14 @@ const token = await AsyncStorage.getItem('userToken'); // ✅ ижил нэрт�
         text: 'Гарах',
         style: 'destructive',
         onPress: async () => {
-          await AsyncStorage.removeItem('token');
+          await AsyncStorage.removeItem('userToken'); // Токен нэрийг шалгаарай!
           router.replace('/LoginScreen');
         },
       },
     ]);
   };
 
+  // Засах
   const handleEdit = () => {
     router.push('/Employee/Profile/ProfileEditScreen');
   };
@@ -71,9 +94,7 @@ const token = await AsyncStorage.getItem('userToken'); // ✅ ижил нэрт�
   }
 
   return (
-   
     <View style={styles.container}>
-      
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={30} color="#2F487F" />
       </TouchableOpacity>
@@ -93,19 +114,27 @@ const token = await AsyncStorage.getItem('userToken'); // ✅ ижил нэрт�
         <Text style={styles.role}>Ажилтан</Text>
         <Text style={styles.company}>{profile?.organization?.name || '---'}</Text>
         <Text style={styles.date}>
-          {new Date(profile.created_at).toLocaleDateString('mn-MN')} элссэн
+          {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('mn-MN') : ''} элссэн
         </Text>
       </View>
 
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
           <Ionicons name="checkmark-done-circle" size={28} color="#2F487F" />
-          <Text style={styles.statNumber}>120</Text>
+          {statsLoading ? (
+            <ActivityIndicator size="small" color="#2F487F" />
+          ) : (
+            <Text style={styles.statNumber}>{stats.instructionsCount}</Text>
+          )}
           <Text style={styles.statLabel}>Үзсэн заавар</Text>
         </View>
         <View style={styles.statBox}>
           <Ionicons name="school" size={28} color="#2F487F" />
-          <Text style={styles.statNumber}>6</Text>
+          {statsLoading ? (
+            <ActivityIndicator size="small" color="#2F487F" />
+          ) : (
+            <Text style={styles.statNumber}>{stats.trainingCount}</Text>
+          )}
           <Text style={styles.statLabel}>Сургалт</Text>
         </View>
       </View>

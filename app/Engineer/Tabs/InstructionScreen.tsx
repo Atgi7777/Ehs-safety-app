@@ -1,28 +1,23 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView , Text} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import Header from '@/app/components/EngineerComponents/Header';
-import InstructionList from '@/app/components/EngineerComponents/EngineerTaskList';
-
+import Training from '@/app/components/EngineerComponents/CreateTrainingScreen'
 const InstructionScreen = () => {
   const router = useRouter();
 
   
-
-  const trainingCount = 5;
-  const inquiryCount = 10;
 
   return (
     <View style={styles.container}>
               <Header />
 
       {/* Контентуудыг ScrollView дотор хийх */}
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-       
-        <InstructionList />
-      </ScrollView>
+    <Text style={styles.title}>Хаб хурал</Text>
+      <Training/>
+ 
 
  
     </View>
@@ -36,5 +31,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#EFF5FF',
   },
+  title:{
+    fontSize: 22,
+    fontWeight: '500',
+    color: '#2F487F',
+    marginTop: 20,
+    textAlign: 'center',
+  }
 
 });

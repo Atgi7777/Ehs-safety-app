@@ -19,6 +19,7 @@ export const useAuth = () => {
       await AsyncStorage.setItem('userId', user.id.toString());
       await AsyncStorage.setItem('username', user.username);
       await AsyncStorage.setItem('userEmail', user.email);
+await AsyncStorage.setItem('user', JSON.stringify(user)); // Бүх хэрэглэгчийн мэдээлэл
 
       // Хэрэглэгчийн мэдээллийг AuthContext-д хадгалах
       setUser(user);

@@ -1,27 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, Image, ActivityIndicator, TouchableOpacity, Dimensions
 } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../../../src/config';
 
 const { width } = Dimensions.get('window');
-const isSmallDevice = width < 360;
 
-type StatisticsProps = {
-  trainingCount: number;
-  inquiryCount: number;
-};
+const Statistics: React.FC = () => {
+  const [trainingCount, setTrainingCount] = useState<number>(0);
+  const [inquiryCount, setInquiryCount] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
 
-const Statistics: React.FC<StatisticsProps> = ({ trainingCount, inquiryCount }) => {
   const [fontsLoaded] = useFonts({
-    'AlumniSans-Bold': require('../../../assets/fonts/AlumniSans-Regular.ttf'), // Font-ийн зөв нэр!
+    'AlumniSans-Bold': require('../../../assets/fonts/AlumniSans-Regular.ttf'),
   });
 
   const router = useRouter();
 
-  if (!fontsLoaded) {
+  useEffect(() => {
+    const fetchCounts = async () => {
+      setLoading(true);
+      try {
+        // 1. Хэрэглэгчийн ID-г авч сургалтын тоогоо авна
+        const idStr = await AsyncStorage.getItem('userId');
+        if (!idStr) throw new Error('userId not found');
+        const userId = Number(idStr);
+
+        const tRes = await fetch(`${BASE_URL}/api/safety-trainings/count/created-by/${userId}`);
+        const tData = await tRes.json();
+        setTrainingCount(tData.count ?? 0);
+
+        // 2. Байгууллагын ID-г авч inquiry/issue-ийн тоогоо авна
+        const userJson = await AsyncStorage.getItem('user');
+        if (!userJson) throw new Error('user not found');
+        const user = JSON.parse(userJson);
+        const organizationId = user.organization_id;
+        const iRes = await fetch(`${BASE_URL}/api/count/org/${organizationId}`);
+        const iData = await iRes.json();
+        setInquiryCount(iData.count ?? 0);
+
+      } catch (e) {
+        setTrainingCount(0);
+        setInquiryCount(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCounts();
+  }, []);
+
+  if (!fontsLoaded || loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
@@ -108,7 +140,7 @@ const styles = StyleSheet.create({
   },
   topRightIcon: {
     position: 'absolute',
-    top: 45, 
+    top: 45,
     right: 10,
   },
 });

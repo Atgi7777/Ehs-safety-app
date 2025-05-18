@@ -1,42 +1,71 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  Platform,
+  View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Header from '@/app/components/EngineerComponents/Header';
-
 import { BASE_URL } from '../../../src/config';
-
 
 const ProfileScreen = () => {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // --- Статистик state-ууд ---
+  const [instructionCount, setInstructionCount] = useState<number>(0);
+  const [trainingCount, setTrainingCount] = useState<number>(0);
+  const [issueCount, setIssueCount] = useState<number>(0);
+  const [employeeCount, setEmployeeCount] = useState<number>(0);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileAndStats = async () => {
       try {
         const token = await AsyncStorage.getItem('userToken');
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
+        // 1. Инженерийн мэдээлэл
         const res = await axios.get(`${BASE_URL}/api/safety-engineer/me`, config);
-        const avatar = res.data.avatar ? `${BASE_URL}${res.data.avatar}` : null;
-        setProfile({ ...res.data, avatar });
+        const engineer = res.data;
+        console.log('Engineer' , engineer.organization.id);
+        const avatar = engineer.avatar ? `${BASE_URL}${engineer.avatar}` : null;
+        setProfile({ ...engineer, avatar });
+
+        // 2. Үүсгэсэн сургалтын тоо
+        const tRes = await axios.get(`${BASE_URL}/api/safety-trainings/count/created-by/${engineer.id}`);
+        setTrainingCount(tRes.data.count ?? 0);
+        console.log('Сургалтын тоо:' , tRes.data.count);
+ 
+        // 3. Үүсгэсэн зааварчилгааны тоо
+        const iRes = await axios.get(`${BASE_URL}/api/instruction/count/created-by/${engineer.id}`);
+        setInstructionCount(iRes.data.count ?? 0);
+          console.log('Зааварчилгаа тоо:' , iRes.data.count); 
+        // 4. Байгууллагын зөрчлийн тоо (issue)  
+        if (engineer.organization?.id) {
+          const isRes = await axios.get(`${BASE_URL}/api/count/org/${engineer.organization.id}`);
+          setIssueCount(isRes.data.count ?? 0);
+          console.log('зөрчил тоо:' , isRes.data.count); 
+
+          // 5. Байгууллагын нийт ажилчид
+          const eRes = await axios.get(`${BASE_URL}/api/employee/count/org/${engineer.organization.id}`);
+          setEmployeeCount(eRes.data.count ?? 0);
+         console.log('зөрчил тоо:' , eRes.data.count); 
+
+        }
       } catch (err) {
-        console.error('Профайл татахад алдаа:', err);
+      
+        Alert.alert('Алдаа', 'Мэдээлэл татаж чадсангүй');
+        setInstructionCount(0);
+        setTrainingCount(0);
+        setIssueCount(0);
+        setEmployeeCount(0);
+      } finally {
+        setLoading(false);
       }
     };
-
-    fetchProfile();
+    fetchProfileAndStats();
   }, []);
 
   const handleEditProfile = () => {
@@ -61,6 +90,14 @@ const ProfileScreen = () => {
     ]);
   };
 
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#EFF5FF' }}>
+        <ActivityIndicator size="large" color="#2F487F" />
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: '#EFF5FF' }}>
       <Header />
@@ -68,8 +105,7 @@ const ProfileScreen = () => {
         {/* Back Arrow */}
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#2F487F" />
-            </TouchableOpacity>
-
+        </TouchableOpacity>
 
         {/* Profile Section */}
         <View style={styles.profileContainer}>
@@ -88,31 +124,31 @@ const ProfileScreen = () => {
             Ажилд орсон огноо:{' '}
             {profile?.assigned_at
               ? new Date(profile.assigned_at).toLocaleDateString('mn-MN')
-              : '—'} 
-           </Text>
+              : '—'}
+          </Text>
         </View>
 
         {/* Statistics Cards */}
         <View style={styles.statsContainer}>
           <View style={styles.card}>
             <Ionicons name="checkbox-outline" size={24} color="#2F487F" />
-            <Text style={styles.cardValue}>120</Text>
+            <Text style={styles.cardValue}>{instructionCount}</Text>
             <Text style={styles.cardLabel}>Өгсөн зааварчилгааны тоо</Text>
           </View>
           <View style={styles.card}>
             <Ionicons name="school-outline" size={24} color="#2F487F" />
-            <Text style={styles.cardValue}>6</Text>
-            <Text style={styles.cardLabel}>Хамрагдсан сургалт</Text>
+            <Text style={styles.cardValue}>{trainingCount}</Text>
+            <Text style={styles.cardLabel}>Үүсгэсэн сургалт</Text>
           </View>
           <View style={styles.card}>
             <Ionicons name="people-outline" size={24} color="#2F487F" />
-            <Text style={styles.cardValue}>120</Text>
+            <Text style={styles.cardValue}>{employeeCount}</Text>
             <Text style={styles.cardLabel}>Нийт ажилчид</Text>
           </View>
           <View style={styles.card}>
             <Ionicons name="alert-circle-outline" size={24} color="#2F487F" />
-            <Text style={styles.cardValue}>5</Text>
-            <Text style={styles.cardLabel}>Бүртгэсэн зөрчил осол</Text>
+            <Text style={styles.cardValue}>{issueCount}</Text>
+            <Text style={styles.cardLabel}>Зөрчил/осол</Text>
           </View>
         </View>
 
@@ -120,7 +156,6 @@ const ProfileScreen = () => {
         <TouchableOpacity style={styles.createButton} onPress={handleEditProfile}>
           <Text style={styles.createButtonText}>Мэдээлэл засах</Text>
         </TouchableOpacity>
-
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Системээс гарах</Text>
         </TouchableOpacity>
@@ -151,6 +186,7 @@ const ProfileScreen = () => {
 
 export default ProfileScreen;
 
+// Таны дээрх styles-ыг яг ашигла
 const styles = StyleSheet.create({
   profileContainer: {
     alignItems: 'center',

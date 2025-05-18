@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -6,7 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../../../src/config';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useFocusEffect } from '@react-navigation/native'; 
-import { useCallback } from 'react';
 
 const EmployeeIssueListScreen = () => {
   const router = useRouter();
@@ -19,20 +18,18 @@ const EmployeeIssueListScreen = () => {
   }, []);
 
   useFocusEffect(
-  useCallback(() => {
-    fetchIssues();
-  }, [])
-);
+    useCallback(() => {
+      fetchIssues();
+    }, [])
+  );
 
   const fetchIssues = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
       if (!token) return;
-
       const res = await fetch(`${BASE_URL}/api/issues/my-issues`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await res.json();
       setIssues(data);
     } catch (error) {
@@ -48,7 +45,7 @@ const EmployeeIssueListScreen = () => {
       if (!token) return;
 
       const res = await fetch(`${BASE_URL}/api/issues/${issueId}/update`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -72,80 +69,6 @@ const EmployeeIssueListScreen = () => {
     return `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
   };
 
-const renderItem = ({ item }: { item: any }) => {
-  const isDropdownOpen = openDropdownId === item.id;
-  const statusColor = getStatusColor(item.status);
-
-  return (
-   <TouchableOpacity
-  activeOpacity={0.8}
-  onPress={() => router.push({
-    pathname: '/Employee/Issue/IssueDetailScreen',
-    params: { id: item.id },   // ✨ ИНГЭЖ ДАМЖУУЛ
-  })} 
-  style={[styles.card, { zIndex: isDropdownOpen ? 1000 : 0 }]}
->
-
-      <View style={styles.headerRow}>
-        <Ionicons name="warning-outline" size={22} color="#2F487F" />
-        <Text style={styles.title}>{item.title}</Text>
-      </View>
-
-      <Text style={styles.description}>{item.description}</Text>
-
-      <View style={styles.bottomRow}>
-        <View style={styles.dateRow}>
-          <MaterialIcons name="calendar-month" size={18} color="#E74C3C" />
-          <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
-        </View>
-
-        <View style={{ width: 190 }}>
-          <DropDownPicker
-            open={isDropdownOpen}
-            value={item.status}
-            items={[
-              { label: 'Хүлээгдэж байна', value: 'pending' },
-              { label: 'Засвар хийгдэж байгаа', value: 'in_progress' },
-              { label: 'Шийдэгдсэн', value: 'resolved' },
-            ]}
-            setOpen={(open) => {
-              const realOpen = typeof open === 'function' ? open(isDropdownOpen) : open;
-              if (realOpen) {
-                setOpenDropdownId(item.id);
-              } else {
-                setOpenDropdownId(null);
-              }
-            }}
-            setValue={() => {}}
-            setItems={() => {}}
-            onSelectItem={(selectedItem) => {
-              handleStatusChange(selectedItem.value, item.id);
-            }}
-            style={{
-              backgroundColor: statusColor.backgroundColor,
-              borderColor: 'transparent',
-              minHeight: 40,
-            }}
-            textStyle={{
-              color: statusColor.textColor,
-              fontWeight: '600',
-              fontSize: 14,
-            }}
-            dropDownContainerStyle={{
-              backgroundColor: '#fff',
-              borderColor: '#ddd',
-              zIndex: 1000, 
-            }}
-            placeholder="Төлөв сонгох"
-            dropDownDirection="BOTTOM"
-          />
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
@@ -157,6 +80,110 @@ const renderItem = ({ item }: { item: any }) => {
       default:
         return { backgroundColor: '#eee', textColor: '#777' };
     }
+  };
+
+  const renderItem = ({ item }: { item: any }) => {
+    const isDropdownOpen = openDropdownId === item.id;
+    const statusColor = getStatusColor(item.status);
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => router.push({
+          pathname: '/Employee/Issue/IssueDetailScreen',
+          params: { id: item.id },
+        })}
+        style={[styles.card, { zIndex: isDropdownOpen ? 1000 : 0 }]}
+      >
+        <View style={styles.headerRow}>
+          <Ionicons name="warning-outline" size={22} color="#2F487F" />
+          <Text style={styles.title}>{item.title}</Text>
+        </View>
+        <Text style={styles.description}>{item.description}</Text>
+      <View style={styles.bottomRow}>
+  <View style={styles.dateRow}>
+    <MaterialIcons name="calendar-month" size={18} color="#E74C3C" />
+    <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
+  </View>
+  <View style={{ flex: 1, minWidth: 0 }}>
+    <DropDownPicker
+      open={isDropdownOpen}
+      value={item.status}
+      items={[
+        { label: 'Хүлээгдэж байна', value: 'pending' },
+        { label: 'Засаж байгаа', value: 'in_progress' },
+        { label: 'Шийдэгдсэн', value: 'resolved' },
+      ]}
+      ArrowDownIconComponent={({ style }) => (
+        <Ionicons name="chevron-down" size={18} color={statusColor.textColor} style={style as any} />
+      )}
+      ArrowUpIconComponent={({ style }) => (
+        <Ionicons name="chevron-up" size={18} color={statusColor.textColor} style={style as any} />
+      )}
+      setOpen={(open) => {
+        const realOpen = typeof open === 'function' ? open(isDropdownOpen) : open;
+        setOpenDropdownId(realOpen ? item.id : null);
+      }}
+      setValue={(callback) => {
+        setIssues((prevIssues) =>
+          prevIssues.map((issue) =>
+            issue.id === item.id
+              ? { ...issue, status: typeof callback === "function" ? callback(issue.status) : callback }
+              : issue
+          )
+        );
+      }}
+      setItems={() => {}}
+      onSelectItem={(selectedItem) => {
+        setIssues((prevIssues) =>
+          prevIssues.map((issue) =>
+            issue.id === item.id ? { ...issue, status: selectedItem.value } : issue
+          )
+        );
+        handleStatusChange(selectedItem.value, item.id);
+      }}
+      style={{
+        backgroundColor: statusColor.backgroundColor,
+        borderColor: 'transparent',
+        minHeight: 38,
+        height: 38,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        flex: 1,
+        minWidth: 0,
+      }}
+      textStyle={{
+        color: statusColor.textColor,
+        fontWeight: '700',
+        fontSize: 14,
+        flexShrink: 1,
+        flexWrap: 'wrap',
+        minWidth: 0,
+      }}
+      dropDownContainerStyle={{
+        backgroundColor: '#fff',
+        borderColor: '#ddd',
+        zIndex: 1000,
+      }}
+      placeholder="Төлөв сонгох"
+      dropDownDirection="BOTTOM"
+      listItemContainerStyle={{
+        minHeight: 38,
+        height: 38,
+      }}
+      labelStyle={{
+        fontWeight: '700',
+        flexShrink: 1,
+        flexWrap: 'wrap',
+        minWidth: 0,
+      }}
+      zIndex={1000 + (isDropdownOpen ? 1 : 0)}
+    />
+  </View>
+</View>
+
+      </TouchableOpacity>
+    );
   };
 
   if (loading) {
@@ -174,6 +201,7 @@ const renderItem = ({ item }: { item: any }) => {
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        extraData={openDropdownId}
       />
 
       {/* Floating Add Button */}
@@ -188,7 +216,7 @@ const renderItem = ({ item }: { item: any }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1,  zIndex: 0, marginBottom: 100},
+  container: { flex: 1, zIndex: 0, backgroundColor: '#F3F7FE' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   card: {
     backgroundColor: '#fff',
@@ -203,7 +231,12 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 },
   title: { fontSize: 16, fontWeight: '700', color: '#2F487F' },
   description: { fontSize: 14, color: '#555', marginBottom: 16 },
-  bottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+bottomRow: { 
+  flexDirection: 'row', 
+  justifyContent: 'space-between', 
+  alignItems: 'flex-start',
+  gap: 12,
+},
   dateRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dateText: { fontSize: 14, color: '#E74C3C', fontWeight: '400' },
   fab: {
