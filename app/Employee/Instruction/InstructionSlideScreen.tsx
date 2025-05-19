@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator , Alert} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Header from '../../components/EmployeeComponents/Header';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -9,47 +9,21 @@ import { Video, ResizeMode } from 'expo-av';
 
 const InstructionSlideScreen = () => {
   const router = useRouter();
-  const { instructionId, groupId } = useLocalSearchParams(); // 🆕 groupId бас авна
+  const { instructionId, groupId } = useLocalSearchParams();
   
   const [slides, setSlides] = useState<any[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(false);
-
-  const handleFinish = () => {
-    if (!instructionId || !groupId) {
-     
-      Alert.alert('Алдаа', 'Зааварчилгаа эсвэл бүлгийн мэдээлэл олдсонгүй.');
-      return;
-    }
-
-    router.push({
-      pathname: '/Employee/Instruction/SignatureConfirmScreen',
-      params: {
-        instructionId: instructionId,
-        groupId: groupId,
-      },
-    });
-  };
-
-  const handleNext = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(currentSlide + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
-    }
-  };
-
-  const handleGoBackHome = () => {
-    router.back();
-  };
+  const [videoWatched, setVideoWatched] = useState(false); // 🆕
 
   useEffect(() => {
     fetchSlides();
   }, [instructionId]);
+
+  // 🆕 Slide солигдох бүрт бичлэг үзсэн flag-ыг reset хийнэ
+  useEffect(() => {
+    setVideoWatched(false);
+  }, [currentSlide]);
 
   const fetchSlides = async () => {
     try {
@@ -61,6 +35,32 @@ const InstructionSlideScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePrev = () => {
+    if (currentSlide > 0) setCurrentSlide(currentSlide - 1);
+  };
+
+  const handleNext = () => {
+    if (currentSlide < slides.length - 1) setCurrentSlide(currentSlide + 1);
+  };
+
+  const handleFinish = () => {
+    if (!instructionId || !groupId) {
+      Alert.alert('Алдаа', 'Зааварчилгаа эсвэл бүлгийн мэдээлэл олдсонгүй.');
+      return;
+    }
+    router.push({
+      pathname: '/Employee/Instruction/SignatureConfirmScreen',
+      params: {
+        instructionId: instructionId,
+        groupId: groupId,
+      },
+    });
+  };
+
+  const handleGoBackHome = () => {
+    router.back();
   };
 
   if (loading) {
@@ -91,14 +91,13 @@ const InstructionSlideScreen = () => {
         <TouchableOpacity onPress={handleGoBackHome}>
           <Ionicons name="arrow-back" size={28} color="#2F487F" />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>Аюулгүйн зааварчилгаа</Text>
       </View>
 
       <View style={styles.content}>
         {hasImage ? (
           <Image
-          source={{ uri: `${BASE_URL}/${current.image_url}` }}
+            source={{ uri: `${BASE_URL}/${current.image_url}` }}
             style={styles.image}
             resizeMode="cover"
           />
@@ -108,7 +107,14 @@ const InstructionSlideScreen = () => {
             style={styles.image}
             useNativeControls
             resizeMode={ResizeMode.COVER}
-            isLooping
+            isLooping={false}
+           onPlaybackStatusUpdate={status => {
+  // Тусгайлан шалгах!
+  if ('didJustFinish' in status && status.didJustFinish && !status.isLooping) {
+    setVideoWatched(true);
+  }
+}}
+
           />
         ) : (
           <View style={styles.noMediaBox}>
@@ -125,13 +131,16 @@ const InstructionSlideScreen = () => {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleNext} disabled={currentSlide === slides.length - 1}>
-            <Ionicons
-              name="chevron-forward-circle-outline"
-              size={40}
-              color={currentSlide === slides.length - 1 ? '#ccc' : '#2F487F'}
-            />
-          </TouchableOpacity>
+          {/* 🆕 VIDEO байгаа бол бичлэг дуустал Next товч харуулахгүй */}
+          {(!hasVideo || videoWatched) && (
+            <TouchableOpacity onPress={handleNext} disabled={currentSlide === slides.length - 1}>
+              <Ionicons
+                name="chevron-forward-circle-outline"
+                size={40}
+                color={currentSlide === slides.length - 1 ? '#ccc' : '#2F487F'}
+              />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.descriptionBox}>
@@ -141,7 +150,9 @@ const InstructionSlideScreen = () => {
 
       <Text style={styles.pageNumber}>Хуудас {currentSlide + 1}/{slides.length}</Text>
 
-      {currentSlide === slides.length - 1 && (
+      {/* 🆕 Төгсгөлийн хуудсан дээр video бол бүрэн үзсэн бол, бусад тохиолдолд Finish гаргана */}
+      {currentSlide === slides.length - 1 &&
+        (!hasVideo || videoWatched) && (
         <TouchableOpacity style={styles.finishButton} onPress={handleFinish}>
           <Text style={styles.finishButtonText}>Гарын үсэг зурах</Text>
         </TouchableOpacity>
@@ -152,9 +163,7 @@ const InstructionSlideScreen = () => {
 
 export default InstructionSlideScreen;
 
-// styles хэсгийг чиний оруулсанхтай адил үлдээе
-
-
+// --- styles нь өөрчлөгдөөгүй ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
