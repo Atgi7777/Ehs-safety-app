@@ -239,9 +239,9 @@ bottomRow: {
 },
   dateRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dateText: { fontSize: 14, color: '#E74C3C', fontWeight: '400' },
-  fab: {
+ fab: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 120,  // Bottom tabbar-ын дээр харагдахаар өндрийг нь ихэсгэ
     right: 24,
     width: 56,
     height: 56,
@@ -249,8 +249,13 @@ bottomRow: {
     backgroundColor: '#2F487F',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 10,
-  },
+    elevation: 20, // өндөр болгож давхарга дээр тавина
+    zIndex: 9999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+  }
 });
 
 export default EmployeeIssueListScreen;
