@@ -161,25 +161,32 @@ const AddInstructionDetail = () => {
             </TouchableOpacity>
 
             <Text style={[styles.label, { marginTop: 20 }]}>Файл хавсаргах</Text>
-            <TouchableOpacity style={styles.uploadBox} onPress={() => openMediaPicker(index)}>
-              {page.file ? (
-                <>
-                  <Image source={{ uri: page.file }} style={styles.uploadedImage} />
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => {
-                      const updatedPages = [...pages];
-                      updatedPages[index].file = null;
-                      setPages(updatedPages);
-                    }}
-                  >
-                    <Ionicons name="close-circle" size={20} color="red" />
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <Text style={{ textAlign: 'center', color: '#999' }}>+ Файл оруулах</Text>
-              )}
-            </TouchableOpacity>
+           <TouchableOpacity
+  style={styles.uploadBox}
+  onPress={async () => {
+    setSelectedPageIndex(index);
+    await handlePickImage();
+  }}
+>
+  {page.file ? (
+    <>
+      <Image source={{ uri: page.file }} style={styles.uploadedImage} />
+      <TouchableOpacity
+        style={styles.removeButton}
+        onPress={() => {
+          const updatedPages = [...pages];
+          updatedPages[index].file = null;
+          setPages(updatedPages);
+        }}
+      >
+        <Ionicons name="close-circle" size={20} color="red" />
+      </TouchableOpacity>
+    </>
+  ) : (
+    <Text style={{ textAlign: 'center', color: '#999' }}>+ Файл оруулах</Text>
+  )}
+</TouchableOpacity>
+
           </View>
         ))}
 
