@@ -193,7 +193,7 @@ const IssueSolutionTab: React.FC<IssueSolutionTabProps> = ({ id, title, user }) 
         ListEmptyComponent={() =>
           loading
             ? <ActivityIndicator size="small" color="#294478" style={{ marginTop: 16 }} />
-            : <Text style={{ color: '#bbb', alignSelf: 'center', marginTop: 20 }}>Одоогоор мессеж алга</Text>
+            : <Text style={{ color: '#bbb', alignSelf: 'center', marginTop: 20 , transform: [{ rotateX: '180deg' }],  }}>Одоогоор мессеж алга</Text>
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.1}

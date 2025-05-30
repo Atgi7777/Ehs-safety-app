@@ -13,7 +13,7 @@ const isSimulator =
 if (isSimulator && Platform.OS === 'ios') {
   API_BASE_URL = 'http://localhost:5050'; // ✅ iOS симулятор
 } else if (isSimulator && Platform.OS === 'android') {
-  API_BASE_URL = 'http://10.0.2.2:5050'; // ✅ Android эмулятор
+  API_BASE_URL = 'http://10.1.0.229:5050'; // ✅ Android эмулятор
 } else {
   API_BASE_URL = 'http://172.20.10.12:5050'; // ← Mac-ийн IP-г энд оруулсан
 }

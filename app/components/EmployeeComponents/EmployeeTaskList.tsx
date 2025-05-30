@@ -248,12 +248,12 @@ const styles = StyleSheet.create({
   noInstructionText: { fontSize: 16, color: '#999999', fontWeight: '600' },
 
   groupSection: { marginBottom: 24 },
-  groupTitleWrapper: { backgroundColor: '#fff', padding: 8, marginHorizontal: 46, marginBottom: 10, borderRadius: 8, alignItems: 'center', shadowColor: '#000',
+  groupTitleWrapper: { backgroundColor: '#fff', padding: 8, marginHorizontal: 46, marginBottom: 10, borderRadius: 8, alignItems: 'center', shadowColor: '#000', textAlign: "center" ,
   shadowOffset: { width: 0, height: 2 },
   shadowOpacity: 0.05,
   shadowRadius: 4,
   elevation: 2,},
-  groupTitle: { fontSize: 17, fontWeight: '600', color: '#2F487F' },
+  groupTitle: { fontSize: 17, fontWeight: '600', color: '#2F487F' , textAlign: "center" },
 
  instructionCard: {
   backgroundColor: '#fff',
